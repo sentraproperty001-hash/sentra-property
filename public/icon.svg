@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="96" fill="#142544"/>
+  <rect x="24" y="24" width="464" height="464" rx="72" stroke="#C9A34E" stroke-width="8" opacity="0.4"/>
+  <!-- Geometric Diamond Outer -->
+  <polygon points="256,64 432,240 256,416 80,240" stroke="#C9A34E" stroke-width="20" stroke-linejoin="round"/>
+  <!-- Inner architectural roof -->
+  <path d="M160,260 L256,164 L352,260" stroke="#E0C477" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Pillars -->
+  <path d="M210,260 L210,330 M302,260 L302,330 M256,210 L256,330" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+  <!-- Core Gold Accent -->
+  <circle cx="256" cy="180" r="16" fill="#C9A34E"/>
+  <!-- Sentra Text in Gold -->
+  <text x="256" y="468" font-family="system-ui, sans-serif" font-size="34" font-weight="800" fill="#E0C477" text-anchor="middle" letter-spacing="6">SENTRA PROPERTY</text>
+</svg>
