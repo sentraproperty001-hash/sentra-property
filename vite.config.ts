@@ -8,12 +8,13 @@ export default defineConfig(() => {
   return {
     plugins: [react(), VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'maskable-icon-512x512.png'],
+      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
         id: '/',
         name: 'Sentra Property',
         short_name: 'SentraProp',
-        description: 'Sentra Property - Platform pencarian properti terbaik.',
+        description: 'Sentra Property - Platform pencarian properti terpercaya di Jember.',
+        lang: 'id',
         theme_color: '#142544',
         background_color: '#F8F7F3',
         display: 'standalone',
@@ -33,12 +34,16 @@ export default defineConfig(() => {
             purpose: 'any',
           },
           {
-            src: '/maskable-icon-512x512.png',
+            src: '/pwa-512x512-maskable.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
           },
         ],
+      },
+      workbox: {
+        cleanupOutdatedCaches: true,
+        navigateFallback: '/index.html',
       },
       devOptions: {
         enabled: true,

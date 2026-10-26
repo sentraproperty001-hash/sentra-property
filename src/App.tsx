@@ -16,32 +16,50 @@ import { ListingApprovalPage } from './features/dashboard/ListingApprovalPage';
 import { LeadsManagerPage } from './features/dashboard/LeadsManagerPage';
 import { AgentManagementPage } from './features/dashboard/AgentManagementPage';
 import { ActivityLogPage } from './features/dashboard/ActivityLogPage';
+import { PublicAppPage } from './features/public-site/PublicAppPage';
+import { PublicAppDetailPage } from './features/public-site/PublicAppDetailPage';
+
+const isPublicAppHost = window.location.hostname === 'app.sentraproperty.com';
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Website Routes */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/katalog" element={<CatalogPage />} />
-          <Route path="/detail/:slug" element={<DetailPage />} />
+          {isPublicAppHost ? (
+            <>
+              <Route path="/" element={<PublicAppPage />} />
+              <Route path="/katalog" element={<PublicAppPage />} />
+              <Route path="/detail/:slug" element={<PublicAppDetailPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          ) : (
+            <>
+              {/* Public Website Routes */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/katalog" element={<CatalogPage />} />
+              <Route path="/detail/:slug" element={<DetailPage />} />
+              <Route path="/app" element={<PublicAppPage basePath="/app" />} />
+              <Route path="/app/katalog" element={<PublicAppPage basePath="/app" />} />
+              <Route path="/app/detail/:slug" element={<PublicAppDetailPage basePath="/app" />} />
 
-          {/* Authentication & Portal Routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/portal-info" element={<PortalPreviewPage />} />
+              {/* Authentication & Portal Routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/portal-info" element={<PortalPreviewPage />} />
 
-          {/* Internal Dashboard Routes */}
-          <Route path="/dashboard" element={<DashboardOverview />} />
-          <Route path="/dashboard/properties" element={<PropertyListingsManager />} />
-          <Route path="/dashboard/approvals" element={<ListingApprovalPage />} />
-          <Route path="/dashboard/leads" element={<LeadsManagerPage />} />
-          <Route path="/dashboard/agents" element={<AgentManagementPage />} />
-          <Route path="/dashboard/activities" element={<ActivityLogPage />} />
+              {/* Internal Dashboard Routes */}
+              <Route path="/dashboard" element={<DashboardOverview />} />
+              <Route path="/dashboard/properties" element={<PropertyListingsManager />} />
+              <Route path="/dashboard/approvals" element={<ListingApprovalPage />} />
+              <Route path="/dashboard/leads" element={<LeadsManagerPage />} />
+              <Route path="/dashboard/agents" element={<AgentManagementPage />} />
+              <Route path="/dashboard/activities" element={<ActivityLogPage />} />
 
-          {/* Redirects & 404 Fallback */}
-          <Route path="/jual-sewa" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+              {/* Redirects & 404 Fallback */}
+              <Route path="/jual-sewa" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          )}
         </Routes>
       </BrowserRouter>
     </AuthProvider>
