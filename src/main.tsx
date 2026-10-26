@@ -1,13 +1,11 @@
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import { registerSW } from 'virtual:pwa-register';
+import { PWAUpdatePrompt } from './components/ui/PWAUpdatePrompt';
 
-registerSW({
-  immediate: true,
-  onRegisterError(error) {
-    console.error('Service worker registration failed:', error);
-  },
-});
-
-createRoot(document.getElementById('root')!).render(<App />);
+createRoot(document.getElementById('root')!).render(
+  <>
+    <App />
+    <PWAUpdatePrompt />
+  </>
+);
