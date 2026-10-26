@@ -1,4 +1,4 @@
-import { Property, Profile } from '../types';
+import { Property, Profile, PropertyStatus } from '../types';
 import { PROPERTIES } from '../data/demo-data';
 import { activityRepository } from './activityRepository';
 import { supabase, supabaseConfigurationError } from '../lib/supabase';
@@ -29,14 +29,20 @@ const PROPERTY_COLUMNS = [
   'created_at',
   'updated_at',
 ].join(',');
+const PROPERTY_SELECT_COLUMNS = `${PROPERTY_COLUMNS},property_images(storage_path,sort_order)`;
 const PROPERTY_PAGE_SIZE = 500;
 type PropertyType = Property['property_type'];
+type ListingType = Property['listing_type'];
 
 const isPropertyType = (value: string): value is PropertyType => (
   value === 'rumah' || value === 'tanah' || value === 'ruko' || value === 'apartemen'
 );
-const isListingType = (value: string): value is Property['listing_type'] => (
+const isListingType = (value: string): value is ListingType => (
   value === 'jual' || value === 'sewa'
+);
+const isPropertyStatus = (value: string): value is PropertyStatus => (
+  value === 'draft' || value === 'pending_review' || value === 'published'
+  || value === 'rejected' || value === 'archived'
 );
 
 interface DatabasePropertyRow {
@@ -63,6 +69,7 @@ interface DatabasePropertyRow {
   rejection_reason: string | null;
   created_at: string;
   updated_at: string;
+  property_images?: unknown;
 }
 
 const isNullableString = (value: unknown): value is string | null => (
@@ -102,6 +109,27 @@ const isDatabasePropertyRow = (value: unknown): value is DatabasePropertyRow => 
     && typeof row.updated_at === 'string';
 };
 
+interface DatabasePropertyImageRow {
+  storage_path: string;
+  sort_order: number | null;
+}
+
+const isDatabasePropertyImageRow = (value: unknown): value is DatabasePropertyImageRow => {
+  if (typeof value !== 'object' || value === null) return false;
+  const row = value as Record<string, unknown>;
+  return typeof row.storage_path === 'string'
+    && (row.sort_order === null || typeof row.sort_order === 'number');
+};
+
+const isHttpUrl = (value: string): boolean => {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
 const loadData = (): Property[] => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -139,13 +167,16 @@ const toNullableNumber = (value: number | string | null): number => {
   return parsed;
 };
 
-const mapDatabaseProperty = (value: unknown): Property => {
+const mapDatabaseProperty = (value: unknown, publicOnly = false): Property => {
   if (!isDatabasePropertyRow(value)) {
     throw new Error('Struktur data properti dari Supabase tidak sesuai dengan skema aplikasi.');
   }
 
   const row = value;
-  if (row.status !== 'published') {
+  if (!isPropertyStatus(row.status)) {
+    throw new Error('Status properti dari Supabase tidak didukung aplikasi.');
+  }
+  if (publicOnly && row.status !== 'published') {
     throw new Error('Supabase mengembalikan properti dengan status yang bukan publik.');
   }
 
@@ -157,7 +188,16 @@ const mapDatabaseProperty = (value: unknown): Property => {
     throw new Error('Jenis transaksi properti dari Supabase tidak valid.');
   }
 
-  const demoImage = PROPERTIES.find(property => property.slug === row.slug)?.image || '';
+  let image = '';
+  if (row.property_images !== undefined) {
+    if (!Array.isArray(row.property_images) || !row.property_images.every(isDatabasePropertyImageRow)) {
+      throw new Error('Struktur metadata gambar properti dari Supabase tidak valid.');
+    }
+    const sortedImages = [...row.property_images].sort(
+      (a, b) => (b.sort_order ?? 0) - (a.sort_order ?? 0)
+    );
+    image = sortedImages.find(item => isHttpUrl(item.storage_path))?.storage_path || '';
+  }
 
   return {
     id: row.id,
@@ -179,8 +219,8 @@ const mapDatabaseProperty = (value: unknown): Property => {
     bathrooms: row.bathrooms ?? 0,
     floors: row.floors ?? 0,
     parking_spaces: row.parking_spaces ?? 0,
-    image: demoImage,
-    status: 'published',
+    image,
+    status: row.status,
     rejection_reason: row.rejection_reason || undefined,
     created_at: row.created_at,
     updated_at: row.updated_at,
@@ -198,7 +238,7 @@ const readPublishedFromSupabase = async (): Promise<Property[]> => {
   while (true) {
     const { data, error } = await supabase
       .from('properties')
-      .select(PROPERTY_COLUMNS)
+      .select(PROPERTY_SELECT_COLUMNS)
       .eq('status', 'published')
       .order('created_at', { ascending: false })
       .range(offset, offset + PROPERTY_PAGE_SIZE - 1);
@@ -207,7 +247,7 @@ const readPublishedFromSupabase = async (): Promise<Property[]> => {
       throw new Error('Gagal memuat listing publik dari Supabase.', { cause: error });
     }
 
-    const page = (data || []).map(mapDatabaseProperty);
+    const page = (data || []).map(row => mapDatabaseProperty(row, true));
     properties.push(...page);
 
     if (page.length < PROPERTY_PAGE_SIZE) {
@@ -216,6 +256,79 @@ const readPublishedFromSupabase = async (): Promise<Property[]> => {
 
     offset += PROPERTY_PAGE_SIZE;
   }
+};
+
+const toDatabasePayload = (property: Property) => ({
+  owner_agent_id: property.owner_agent_id,
+  title: property.title,
+  slug: property.slug,
+  description: property.description,
+  property_type: property.property_type,
+  listing_type: property.listing_type,
+  price: property.price,
+  province: property.province,
+  city: property.city,
+  district: property.district,
+  village: property.village,
+  address: property.address,
+  land_area: property.land_area,
+  building_area: property.building_area,
+  bedrooms: property.bedrooms,
+  bathrooms: property.bathrooms,
+  floors: property.floors,
+  parking_spaces: property.parking_spaces,
+  status: property.status,
+  rejection_reason: property.rejection_reason || null,
+  updated_at: new Date().toISOString(),
+});
+
+const persistPropertyImage = async (propertyId: string, imageUrl: string, title: string): Promise<void> => {
+  if (!supabase) throw new Error('Client Supabase belum dikonfigurasi.');
+  if (!imageUrl) return;
+  if (!isHttpUrl(imageUrl)) {
+    throw new Error('URL foto harus menggunakan alamat http atau https yang valid.');
+  }
+
+  const { data: latestImage, error: readError } = await supabase
+    .from('property_images')
+    .select('storage_path,sort_order')
+    .eq('property_id', propertyId)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (readError) throw new Error('Gagal membaca urutan foto listing.', { cause: readError });
+  if (latestImage?.storage_path === imageUrl) return;
+
+  const { error } = await supabase.from('property_images').insert({
+    property_id: propertyId,
+    storage_path: imageUrl,
+    alt_text: title,
+    sort_order: (latestImage?.sort_order || 0) + 1,
+  });
+  if (error) throw new Error('URL foto tidak dapat disimpan ke Supabase.', { cause: error });
+};
+
+export interface PropertyWriteResult {
+  property: Property;
+  warning?: string;
+}
+
+const logSupabasePropertyActivity = (
+  action: 'create' | 'update' | 'delete' | 'submit_review' | 'approve' | 'reject' | 'status_change',
+  property: Property,
+  author: Profile,
+  details: string
+) => {
+  activityRepository.log({
+    user_id: author.id,
+    user_name: author.full_name,
+    user_role: author.role,
+    action,
+    entity_type: 'property',
+    entity_id: property.id,
+    entity_title: property.title,
+    details,
+  });
 };
 
 export interface SearchFilterParams {
@@ -237,7 +350,143 @@ export const propertyRepository = {
     if (supabaseConfigurationError) {
       throw new Error(supabaseConfigurationError);
     }
-    return supabase ? readPublishedFromSupabase() : findPublishedProperties();
+    if (supabase) return readPublishedFromSupabase();
+    if (import.meta.env.DEV) return findPublishedProperties();
+    throw new Error('Supabase belum dikonfigurasi untuk memuat listing publik.');
+  },
+
+  findManagedAsync: async (user: Profile, isAdmin: boolean): Promise<Property[]> => {
+    if (!supabase) {
+      if (supabaseConfigurationError) throw new Error(supabaseConfigurationError);
+      return loadData().filter(property => isAdmin || property.owner_agent_id === user.id);
+    }
+
+    const properties: Property[] = [];
+    let offset = 0;
+    while (true) {
+      const { data, error } = await supabase
+        .from('properties')
+        .select(PROPERTY_SELECT_COLUMNS)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + PROPERTY_PAGE_SIZE - 1);
+      if (error) throw new Error('Gagal memuat listing yang dapat dikelola dari Supabase.', { cause: error });
+
+      const page = (data || [])
+        .map(row => mapDatabaseProperty(row))
+        .filter(property => isAdmin || property.owner_agent_id === user.id);
+      properties.push(...page);
+      if (!data || data.length < PROPERTY_PAGE_SIZE) return properties;
+      offset += PROPERTY_PAGE_SIZE;
+    }
+  },
+
+  findPendingReviewAsync: async (user: Profile, isAdmin: boolean): Promise<Property[]> => {
+    const properties = await propertyRepository.findManagedAsync(user, isAdmin);
+    return properties.filter(property => property.status === 'pending_review');
+  },
+
+  createAsync: async (property: Property, author: Profile): Promise<PropertyWriteResult> => {
+    if (!supabase) throw new Error(supabaseConfigurationError || 'Supabase belum dikonfigurasi.');
+    if (property.image && !isHttpUrl(property.image)) {
+      throw new Error('URL foto harus menggunakan alamat http atau https yang valid.');
+    }
+    const id = crypto.randomUUID();
+    const { data, error } = await supabase
+      .from('properties')
+      .insert({ id, ...toDatabasePayload(property) })
+      .select(PROPERTY_SELECT_COLUMNS)
+      .single();
+    if (error) {
+      throw new Error('Listing tidak dapat disimpan. Periksa profil akun, status listing, dan kebijakan akses Supabase.', { cause: error });
+    }
+
+    const savedProperty = mapDatabaseProperty(data);
+    let warning: string | undefined;
+    try {
+      await persistPropertyImage(id, property.image, property.title);
+    } catch (imageError) {
+      warning = imageError instanceof Error
+        ? `Listing tersimpan, tetapi foto gagal disimpan: ${imageError.message}`
+        : 'Listing tersimpan, tetapi foto gagal disimpan.';
+    }
+    logSupabasePropertyActivity('create', { ...savedProperty, image: property.image }, author, `Membuat listing baru (${property.status})`);
+    return { property: { ...savedProperty, image: property.image }, warning };
+  },
+
+  updateAsync: async (
+    id: string,
+    updates: Partial<Property>,
+    author: Profile
+  ): Promise<PropertyWriteResult> => {
+    if (!supabase) throw new Error(supabaseConfigurationError || 'Supabase belum dikonfigurasi.');
+    if (updates.image && !isHttpUrl(updates.image)) {
+      throw new Error('URL foto harus menggunakan alamat http atau https yang valid.');
+    }
+
+    const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const fields: Array<keyof Property> = [
+      'title', 'slug', 'description', 'property_type', 'listing_type', 'price',
+      'province', 'city', 'district', 'village', 'address', 'land_area',
+      'building_area', 'bedrooms', 'bathrooms', 'floors', 'parking_spaces',
+      'status', 'rejection_reason',
+    ];
+    fields.forEach(field => {
+      if (Object.prototype.hasOwnProperty.call(updates, field)) {
+        payload[field] = field === 'rejection_reason' && updates[field] === undefined
+          ? null
+          : updates[field];
+      }
+    });
+
+    const { data, error } = await supabase
+      .from('properties')
+      .update(payload)
+      .eq('id', id)
+      .select(PROPERTY_SELECT_COLUMNS)
+      .single();
+    if (error) {
+      throw new Error('Listing tidak dapat diperbarui. Periksa kepemilikan, status, dan kebijakan akses Supabase.', { cause: error });
+    }
+
+    const savedProperty = mapDatabaseProperty(data);
+    let warning: string | undefined;
+    if (updates.image) {
+      try {
+        await persistPropertyImage(id, updates.image, updates.title || savedProperty.title);
+      } catch (imageError) {
+        warning = imageError instanceof Error
+          ? `Listing tersimpan, tetapi foto gagal diperbarui: ${imageError.message}`
+          : 'Listing tersimpan, tetapi foto gagal diperbarui.';
+      }
+    }
+    const updatedProperty = { ...savedProperty, image: updates.image || savedProperty.image };
+    logSupabasePropertyActivity('update', updatedProperty, author, 'Memperbarui data properti');
+    return { property: updatedProperty, warning };
+  },
+
+  deleteAsync: async (id: string, author: Profile): Promise<void> => {
+    if (!supabase) throw new Error(supabaseConfigurationError || 'Supabase belum dikonfigurasi.');
+    const { data, error } = await supabase
+      .from('properties')
+      .delete()
+      .eq('id', id)
+      .select(PROPERTY_COLUMNS)
+      .maybeSingle();
+    if (error) throw new Error('Listing tidak dapat dihapus oleh akun ini.', { cause: error });
+    if (!data) throw new Error('Listing tidak ditemukan atau akun ini tidak memiliki izin menghapusnya.');
+    logSupabasePropertyActivity('delete', mapDatabaseProperty(data), author, 'Menghapus listing properti');
+  },
+
+  setStatusAsync: async (
+    id: string,
+    status: PropertyStatus,
+    author: Profile,
+    rejectionReason?: string
+  ): Promise<Property> => {
+    const updates: Partial<Property> = { status, rejection_reason: rejectionReason };
+    const result = await propertyRepository.updateAsync(id, updates, author);
+    if (result.warning) throw new Error(result.warning);
+    return result.property;
   },
 
   findById: (id: string): Property | undefined => {

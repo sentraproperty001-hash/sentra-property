@@ -18,8 +18,23 @@ import { AgentManagementPage } from './features/dashboard/AgentManagementPage';
 import { ActivityLogPage } from './features/dashboard/ActivityLogPage';
 import { PublicAppPage } from './features/public-site/PublicAppPage';
 import { PublicAppDetailPage } from './features/public-site/PublicAppDetailPage';
+import { useAuth } from './features/auth/AuthContext';
+import React from 'react';
 
 const isPublicAppHost = window.location.hostname === 'app.sentraproperty.com';
+
+const DashboardAccess: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isLoading, isAuthenticated } = useAuth();
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center text-sm text-[#6B7280]">Memeriksa sesi portal...</div>;
+  }
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+};
+
+const DemoDashboardOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isDemoMode } = useAuth();
+  return isDemoMode ? <>{children}</> : <Navigate to="/dashboard/properties" replace />;
+};
 
 export default function App() {
   return (
@@ -48,12 +63,12 @@ export default function App() {
               <Route path="/portal-info" element={<PortalPreviewPage />} />
 
               {/* Internal Dashboard Routes */}
-              <Route path="/dashboard" element={<DashboardOverview />} />
-              <Route path="/dashboard/properties" element={<PropertyListingsManager />} />
-              <Route path="/dashboard/approvals" element={<ListingApprovalPage />} />
-              <Route path="/dashboard/leads" element={<LeadsManagerPage />} />
-              <Route path="/dashboard/agents" element={<AgentManagementPage />} />
-              <Route path="/dashboard/activities" element={<ActivityLogPage />} />
+              <Route path="/dashboard" element={<DashboardAccess><DemoDashboardOnly><DashboardOverview /></DemoDashboardOnly></DashboardAccess>} />
+              <Route path="/dashboard/properties" element={<DashboardAccess><PropertyListingsManager /></DashboardAccess>} />
+              <Route path="/dashboard/approvals" element={<DashboardAccess><ListingApprovalPage /></DashboardAccess>} />
+              <Route path="/dashboard/leads" element={<DashboardAccess><DemoDashboardOnly><LeadsManagerPage /></DemoDashboardOnly></DashboardAccess>} />
+              <Route path="/dashboard/agents" element={<DashboardAccess><DemoDashboardOnly><AgentManagementPage /></DemoDashboardOnly></DashboardAccess>} />
+              <Route path="/dashboard/activities" element={<DashboardAccess><DemoDashboardOnly><ActivityLogPage /></DemoDashboardOnly></DashboardAccess>} />
 
               {/* Redirects & 404 Fallback */}
               <Route path="/jual-sewa" element={<Navigate to="/" replace />} />

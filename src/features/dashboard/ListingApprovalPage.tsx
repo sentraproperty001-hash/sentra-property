@@ -20,34 +20,48 @@ import {
 } from 'lucide-react';
 
 export const ListingApprovalPage: React.FC = () => {
-  const { currentUser, isAdmin } = useAuth();
+  const { currentUser, isAdmin, isDemoMode } = useAuth();
   const [pendingListings, setPendingListings] = useState<Property[]>([]);
   const [agents, setAgents] = useState<Record<string, Profile>>({});
   const [selectedForReject, setSelectedForReject] = useState<Property | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
+  const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
 
-  const loadPending = () => {
-    const list = propertyRepository.findPendingReview();
-    setPendingListings(list);
-
-    const allAgents = userRepository.findAll();
-    const map: Record<string, Profile> = {};
-    allAgents.forEach((a) => {
-      map[a.id] = a;
-    });
-    setAgents(map);
+  const loadPending = async () => {
+    try {
+      setActionErrorMessage(null);
+      const [list, allAgents] = isDemoMode
+        ? [propertyRepository.findPendingReview(), userRepository.findAll()]
+        : await Promise.all([
+            propertyRepository.findPendingReviewAsync(currentUser, isAdmin),
+            userRepository.findAllAsync(),
+          ]);
+      setPendingListings(list);
+      const map: Record<string, Profile> = {};
+      allAgents.forEach((a) => {
+        map[a.id] = a;
+      });
+      setAgents(map);
+    } catch (error) {
+      setActionErrorMessage(error instanceof Error ? error.message : 'Gagal memuat listing yang menunggu review.');
+    }
   };
 
   useEffect(() => {
-    loadPending();
-  }, []);
+    void loadPending();
+  }, [currentUser, isAdmin, isDemoMode]);
 
-  const handleApprove = (prop: Property) => {
-    propertyRepository.approveListing(prop.id, currentUser);
-    loadPending();
-    setActionSuccessMessage(`Listing "${prop.title}" berhasil disetujui dan kini telah TERBIT di website publik.`);
-    setTimeout(() => setActionSuccessMessage(null), 5000);
+  const handleApprove = async (prop: Property) => {
+    try {
+      if (isDemoMode) propertyRepository.approveListing(prop.id, currentUser);
+      else await propertyRepository.setStatusAsync(prop.id, 'published', currentUser);
+      await loadPending();
+      setActionSuccessMessage(`Listing "${prop.title}" berhasil disetujui dan kini telah TERBIT di website publik.`);
+      setTimeout(() => setActionSuccessMessage(null), 5000);
+    } catch (error) {
+      setActionErrorMessage(error instanceof Error ? error.message : 'Listing gagal disetujui.');
+    }
   };
 
   const handleOpenReject = (prop: Property) => {
@@ -55,14 +69,20 @@ export const ListingApprovalPage: React.FC = () => {
     setRejectionReason('Mohon perbaiki data kelengkapan foto dan nomor sertifikat kepemilikan.');
   };
 
-  const handleConfirmReject = () => {
+  const handleConfirmReject = async () => {
     if (!selectedForReject || !rejectionReason.trim()) return;
-    propertyRepository.rejectListing(selectedForReject.id, rejectionReason, currentUser);
-    loadPending();
-    setActionSuccessMessage(`Listing "${selectedForReject.title}" ditolak. Alasan revisi telah diteruskan ke agen.`);
-    setSelectedForReject(null);
-    setRejectionReason('');
-    setTimeout(() => setActionSuccessMessage(null), 5000);
+    try {
+      const property = selectedForReject;
+      if (isDemoMode) propertyRepository.rejectListing(property.id, rejectionReason, currentUser);
+      else await propertyRepository.setStatusAsync(property.id, 'rejected', currentUser, rejectionReason);
+      await loadPending();
+      setActionSuccessMessage(`Listing "${property.title}" ditolak. Alasan revisi telah diteruskan ke agen.`);
+      setSelectedForReject(null);
+      setRejectionReason('');
+      setTimeout(() => setActionSuccessMessage(null), 5000);
+    } catch (error) {
+      setActionErrorMessage(error instanceof Error ? error.message : 'Listing gagal ditolak.');
+    }
   };
 
   if (!isAdmin) {
@@ -75,7 +95,10 @@ export const ListingApprovalPage: React.FC = () => {
           <ShieldCheck className="w-12 h-12 text-rose-500 mx-auto mb-3" />
           <h3 className="font-bold text-base text-[#142544]">Hak Akses Dibatasi</h3>
           <p className="text-xs text-[#6B7280] mt-1">
-            Akun Anda saat ini ({currentUser.role}) tidak memiliki izin persetujuan listing. Silakan gunakan menu simulasi peran di pojok atas untuk beralih ke <strong>Super Admin</strong> atau <strong>Admin</strong>.
+            Akun Anda saat ini ({currentUser.role}) tidak memiliki izin persetujuan listing.
+            {isDemoMode
+              ? <> Silakan gunakan menu simulasi peran untuk beralih ke <strong>Super Admin</strong> atau <strong>Admin</strong>.</>
+              : <> Hubungi administrator untuk meminta role yang sesuai.</>}
           </p>
         </div>
       </DashboardLayout>
@@ -88,6 +111,11 @@ export const ListingApprovalPage: React.FC = () => {
       subtitle="Tinjau dan verifikasi listing properti yang diajukan agen sebelum dipublikasikan ke publik"
     >
       <div className="space-y-6">
+        {actionErrorMessage && (
+          <div role="alert" className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700">
+            {actionErrorMessage}
+          </div>
+        )}
         {/* Success Alert */}
         {actionSuccessMessage && (
           <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 shadow-xs">
@@ -136,11 +164,17 @@ export const ListingApprovalPage: React.FC = () => {
                 >
                   {/* Photo */}
                   <div className="w-full md:w-64 aspect-16/10 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 relative">
-                    <img
-                      src={prop.image}
-                      alt={prop.title}
-                      className="w-full h-full object-cover"
-                    />
+                    {prop.image ? (
+                      <img
+                        src={prop.image}
+                        alt={prop.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[#6B7280] text-xs">
+                        Foto belum tersedia
+                      </div>
+                    )}
                     <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#C9A34E] text-[#142544] text-[9px] font-extrabold uppercase">
                       Pending Review
                     </div>
@@ -209,7 +243,7 @@ export const ListingApprovalPage: React.FC = () => {
                       </button>
 
                       <button
-                        onClick={() => handleApprove(prop)}
+                        onClick={() => void handleApprove(prop)}
                         className="px-5 py-2 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
                       >
                         <Check className="w-4 h-4 text-[#C9A34E]" />
@@ -266,7 +300,7 @@ export const ListingApprovalPage: React.FC = () => {
                 Batal
               </button>
               <button
-                onClick={handleConfirmReject}
+                onClick={() => void handleConfirmReject()}
                 className="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold"
               >
                 Kirim Penolakan

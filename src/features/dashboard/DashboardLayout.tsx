@@ -35,26 +35,39 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   subtitle,
   actionButton,
 }) => {
-  const { currentUser, allProfiles, switchUser, isSuperAdmin, isAdmin, logout } = useAuth();
+  const { currentUser, allProfiles, switchUser, isSuperAdmin, isAdmin, isDemoMode, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [newLeadsCount, setNewLeadsCount] = useState(0);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    // Refresh badges
-    const pending = propertyRepository.findPendingReview().length;
-    setPendingCount(pending);
-
-    const leads = leadRepository.findAll().filter(l => l.status === 'new').length;
-    setNewLeadsCount(leads);
-  }, [location.pathname, currentUser]);
+    if (isDemoMode) {
+      setPendingCount(propertyRepository.findPendingReview().length);
+      setNewLeadsCount(leadRepository.findAll().filter(l => l.status === 'new').length);
+    } else {
+      setPendingCount(0);
+      setNewLeadsCount(0);
+    }
+  }, [location.pathname, currentUser, isDemoMode]);
 
   const handleRoleChange = (userId: string) => {
+    if (!isDemoMode) return;
     switchUser(userId);
     setRoleDropdownOpen(false);
+  };
+
+  const handleLogout = async () => {
+    setLogoutError(null);
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      setLogoutError(error instanceof Error ? error.message : 'Gagal keluar dari akun.');
+    }
   };
 
   const navItems = [
@@ -63,7 +76,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       label: 'Ringkasan',
       icon: LayoutDashboard,
       exact: true,
-      allowed: true,
+      allowed: isDemoMode,
     },
     {
       to: '/dashboard/properties',
@@ -83,19 +96,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       label: 'Manajemen Leads',
       icon: Users,
       badge: newLeadsCount > 0 ? newLeadsCount : undefined,
-      allowed: true,
+      allowed: isDemoMode,
     },
     {
       to: '/dashboard/agents',
       label: 'Tim & Agen',
       icon: UserCheck,
-      allowed: isSuperAdmin,
+      allowed: isDemoMode && isSuperAdmin,
     },
     {
       to: '/dashboard/activities',
       label: 'Log Audit Aktivitas',
       icon: History,
-      allowed: true,
+      allowed: isDemoMode,
     },
   ];
 
@@ -105,13 +118,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       <div className="md:hidden bg-[#142544] text-white p-4 flex items-center justify-between sticky top-0 z-50 border-b border-[#0B1730]">
         <BrandLogo variant="dark" size="sm" />
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-            className="px-2.5 py-1 rounded-lg bg-white/10 text-[#C9A34E] text-xs font-bold flex items-center gap-1"
-          >
+          <div className="px-2.5 py-1 rounded-lg bg-white/10 text-[#C9A34E] text-xs font-bold flex items-center gap-1">
             <span className="truncate max-w-[90px]">{currentUser.full_name}</span>
-            <ChevronDown className="w-3.5 h-3.5" />
-          </button>
+            {isDemoMode && (
+              <button
+                onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                aria-label="Ganti role demo"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-1.5 rounded-lg bg-white/10 text-white"
@@ -139,15 +156,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <div className="relative mb-6 p-3 rounded-xl bg-white/5 border border-white/10">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] uppercase tracking-wider font-semibold text-[#C9A34E]">
-                Akun Aktif (Simulasi)
+                {isDemoMode ? 'Akun Aktif (Simulasi)' : 'Akun Terverifikasi'}
               </span>
-              <button
-                onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-                className="text-[10px] text-gray-300 hover:text-white flex items-center gap-0.5 underline cursor-pointer"
-              >
-                <span>Ganti Role</span>
-                <ChevronDown className="w-3 h-3 text-[#C9A34E]" />
-              </button>
+              {isDemoMode && (
+                <button
+                  onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                  className="text-[10px] text-gray-300 hover:text-white flex items-center gap-0.5 underline cursor-pointer"
+                >
+                  <span>Ganti Role</span>
+                  <ChevronDown className="w-3 h-3 text-[#C9A34E]" />
+                </button>
+              )}
             </div>
 
             <div className="flex items-center gap-2.5">
@@ -169,7 +188,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </div>
 
             {/* Role dropdown modal/flyout */}
-            {roleDropdownOpen && (
+            {isDemoMode && roleDropdownOpen && (
               <div className="absolute left-0 right-0 top-full mt-2 bg-[#0B1730] border border-[#C9A34E]/30 rounded-xl shadow-xl p-2 z-50">
                 <div className="text-[10px] font-bold text-gray-400 px-2 py-1 uppercase">
                   Pilih Simulasi Role:
@@ -237,6 +256,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-white/10 space-y-2">
+          {logoutError && (
+            <div role="alert" className="p-2 rounded-lg bg-red-500/10 border border-red-400/30 text-[10px] text-red-200">
+              {logoutError}
+            </div>
+          )}
           <Link
             to="/"
             target="_blank"
@@ -248,10 +272,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </span>
           </Link>
           <button
-            onClick={() => {
-              logout();
-              navigate('/login');
-            }}
+            onClick={() => void handleLogout()}
             className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-red-300 hover:text-red-200 hover:bg-red-500/10 transition"
           >
             <span className="flex items-center gap-2">
@@ -276,18 +297,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            {/* Quick Demo Switcher on Header */}
-            <div className="relative hidden lg:flex items-center gap-2 bg-[#F8F7F3] border border-[#E8E5DD] px-3 py-1.5 rounded-xl">
-              <Sparkles className="w-3.5 h-3.5 text-[#C9A34E]" />
+            <div className="hidden lg:flex items-center gap-2 bg-[#F8F7F3] border border-[#E8E5DD] px-3 py-1.5 rounded-xl">
+              {isDemoMode && <Sparkles className="w-3.5 h-3.5 text-[#C9A34E]" />}
               <span className="text-[11px] font-semibold text-[#142544]">
                 Role: <strong className="text-[#C9A34E] uppercase">{currentUser.role.replace('_', ' ')}</strong>
               </span>
-              <button
-                onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-                className="text-[10px] text-[#142544] font-bold hover:underline ml-1"
-              >
-                (Ubah)
-              </button>
+              {isDemoMode && (
+                <button
+                  onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                  className="text-[10px] text-[#142544] font-bold hover:underline ml-1"
+                >
+                  (Ubah)
+                </button>
+              )}
             </div>
 
             {actionButton}

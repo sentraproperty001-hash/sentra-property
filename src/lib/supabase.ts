@@ -15,3 +15,5 @@ export const supabaseConfigurationError = hasSupabaseUrl !== hasSupabaseKey
 export const supabase = hasSupabaseUrl && hasSupabaseKey
   ? createClient(normalizedSupabaseUrl, normalizedSupabaseKey)
   : null;
+
+export const isDemoMode = import.meta.env.DEV && !supabase && !supabaseConfigurationError;

@@ -6,7 +6,7 @@
 2. Isi `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` dengan Project URL dan publishable key/anon key dari dashboard Supabase.
 3. Jangan gunakan `service_role` key atau secret key di aplikasi frontend, dan jangan membagikan isi `.env.local`.
 
-`.env.local` diabaikan oleh Git. Website tetap menggunakan data demo ketika konfigurasi Supabase belum tersedia.
+`.env.local` diabaikan oleh Git. Login simulasi hanya tersedia saat development tanpa konfigurasi Supabase. Portal produksi tidak mengizinkan login simulasi atau penulisan data.
 
 ## Status migrasi
 
@@ -25,8 +25,17 @@ Jalankan secara manual hanya setelah skema dan kebijakan RLS ditinjau serta pemi
 ## Catatan akses dan integrasi
 
 - Pengunjung anonim hanya diberi akses baca listing berstatus `published`, metadata gambar milik listing terbit, dan pengiriman lead untuk listing terbit.
-- Profil dibatasi untuk pemilik profil dan admin. Login demo aplikasi belum menjadi autentikasi Supabase.
-- Peran admin memerlukan profil yang diprovisikan secara aman. Jangan membuat admin melalui frontend publik.
-- Tabel `property_images` menyimpan metadata/path gambar; bucket Supabase Storage dan kebijakannya belum dikonfigurasi oleh skrip ini.
-- Skema database belum sepenuhnya cocok dengan tipe `Property`, `Profile`, dan `Lead` di aplikasi. Pemetaan data perlu diselesaikan sebelum repository publik dihubungkan.
-- Data demo tetap menjadi fallback sampai integrasi aplikasi dan penanganan error disetujui serta diuji.
+- Portal website memakai Supabase Auth. Login berhasil hanya jika user Auth memiliki baris `profiles` dengan `id` yang sama dan role yang dikenali.
+- Buat/invite user dari Supabase Dashboard, lalu provisioning profil dan role secara manual melalui alat administratif Supabase. Jangan membuat akun admin atau menetapkan role dari frontend publik; jangan pernah memasukkan `service_role` key ke aplikasi.
+- Contoh provisioning satu akun setelah membuat user melalui Supabase Dashboard (ganti nilai placeholder; jalankan sebagai pemilik proyek di SQL Editor, bukan dari aplikasi):
+
+  ```sql
+  INSERT INTO public.profiles (id, full_name, phone, role)
+  VALUES ('AUTH_USER_UUID', 'Nama Pengguna', 'Nomor Telepon', 'super_admin');
+  ```
+
+  Gunakan role `admin`, `internal_agent`, atau `partner_agent` sesuai kewenangan. Buat profil hanya jika belum ada untuk UUID tersebut.
+- Skema/profil dan kebijakan RLS di database aktif harus diperiksa sebelum portal digunakan. Migrasi lokal tidak membuktikan bahwa skema atau kebijakan tersebut telah diterapkan.
+- Agent hanya dapat membuat listing `draft`/`pending_review` miliknya dan tidak dapat menerbitkan listing. Admin dapat meninjau dan menerbitkan; publik tetap hanya dapat membaca `published`.
+- Form produksi tidak memakai gambar dummy. URL foto HTTP(S) opsional disimpan sebagai metadata pada `property_images.storage_path`; ini tidak mengunggah file. Foto yang belum tersedia ditampilkan sebagai placeholder. Bucket Storage tetap memerlukan konfigurasi terpisah untuk unggah berkas.
+- Dashboard listing dan review memakai Supabase saat terkonfigurasi. Leads, manajemen agen, ringkasan demo, serta log aktivitas lokal tetap hanya tersedia pada mode demo dan tidak ditampilkan sebagai data produksi.

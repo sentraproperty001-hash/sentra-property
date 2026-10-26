@@ -1,5 +1,6 @@
 import { Profile, Role } from '../types';
 import { PROFILES } from '../data/demo-data';
+import { supabase, supabaseConfigurationError } from '../lib/supabase';
 
 const STORAGE_KEY = 'sentra_property_users_v2';
 
@@ -30,6 +31,36 @@ const saveData = (data: Profile[]) => {
 export const userRepository = {
   findAll: (): Profile[] => {
     return loadData();
+  },
+
+  findAllAsync: async (): Promise<Profile[]> => {
+    if (!supabase) {
+      if (supabaseConfigurationError) throw new Error(supabaseConfigurationError);
+      return loadData();
+    }
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id,full_name,phone,role,created_at')
+      .order('created_at', { ascending: true });
+    if (error) throw new Error('Gagal memuat profil agen dari Supabase.', { cause: error });
+
+    return (data || []).map(profile => {
+      if (
+        profile.role !== 'super_admin' && profile.role !== 'admin'
+        && profile.role !== 'internal_agent' && profile.role !== 'partner_agent'
+      ) {
+        throw new Error('Role profil agen dari Supabase tidak valid.');
+      }
+      return {
+        id: profile.id,
+        full_name: profile.full_name || 'Agen Sentra Property',
+        email: '',
+        phone: profile.phone || '',
+        role: profile.role,
+        status: 'active' as const,
+        joined_at: profile.created_at,
+      };
+    });
   },
 
   findById: (id: string): Profile | undefined => {

@@ -2,30 +2,32 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { BrandLogo } from '@/src/components/ui/BrandLogo';
-import { ShieldCheck, UserCheck, Building, KeyRound, ArrowRight, Lock, Mail, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, UserCheck, Building, ArrowRight, Lock, Mail, CheckCircle2 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { allProfiles, switchUser, login, currentUser } = useAuth();
+  const { allProfiles, switchUser, login, currentUser, isDemoMode, isLoading, authError } = useAuth();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('sentra123');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const handleManualLogin = (e: React.FormEvent) => {
+  const handleManualLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      setError('Masukkan alamat email demo');
+    if (!email || (!isDemoMode && !password)) {
+      setError(isDemoMode ? 'Masukkan alamat email demo.' : 'Masukkan email dan kata sandi akun Supabase.');
       return;
     }
-    const success = login(email);
-    if (success) {
+    setError(null);
+    try {
+      await login(email, password);
       navigate('/dashboard');
-    } else {
-      setError('Email tidak terdaftar di akun demo. Pilih salah satu profil demo di bawah.');
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : 'Login gagal. Silakan coba lagi.');
     }
   };
 
   const handleSelectRole = (userId: string) => {
+    if (!isDemoMode) return;
     switchUser(userId);
     navigate('/dashboard');
   };
@@ -47,7 +49,7 @@ export const LoginPage: React.FC = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
         <div className="bg-white py-8 px-6 shadow-sm border border-[#E8E5DD] rounded-2xl sm:px-10">
           {/* Quick Demo Switcher Section */}
-          <div className="mb-6">
+          {isDemoMode && <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold text-[#142544] uppercase tracking-wider">
                 Pilih Akun Demo (1-Klik Masuk)
@@ -93,27 +95,27 @@ export const LoginPage: React.FC = () => {
                 );
               })}
             </div>
-          </div>
+          </div>}
 
-          <div className="relative my-6">
+          {isDemoMode && <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-[#E8E5DD]" />
             </div>
             <div className="relative flex justify-center text-xs">
               <span className="px-3 bg-white text-[#6B7280]">atau login manual</span>
             </div>
-          </div>
+          </div>}
 
-          {error && (
+          {(error || authError) && (
             <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700">
-              {error}
+              {error || authError}
             </div>
           )}
 
           <form onSubmit={handleManualLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-[#142544] mb-1">
-                Email Terdaftar
+                {isDemoMode ? 'Email Demo' : 'Email akun terdaftar'}
               </label>
               <div className="relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#6B7280]">
@@ -122,8 +124,11 @@ export const LoginPage: React.FC = () => {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="contoh: rian.pratama@sentraproperty.id"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError(null);
+                  }}
+                  placeholder={isDemoMode ? 'Pilih akun demo atau masukkan email' : 'Email yang didaftarkan administrator'}
                   className="block w-full pl-9 pr-3 py-2 border border-[#E8E5DD] rounded-xl text-xs text-[#142544] placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#C9A34E] focus:border-[#C9A34E]"
                 />
               </div>
@@ -140,20 +145,26 @@ export const LoginPage: React.FC = () => {
                 <input
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError(null);
+                  }}
                   className="block w-full pl-9 pr-3 py-2 border border-[#E8E5DD] rounded-xl text-xs text-[#142544] focus:outline-none focus:ring-1 focus:ring-[#C9A34E] focus:border-[#C9A34E]"
+                  autoComplete="current-password"
+                  required={!isDemoMode}
                 />
               </div>
               <span className="text-[10px] text-[#6B7280] mt-1 block">
-                * Kata sandi demo otomatis terisi
+                {isDemoMode ? '* Mode demo development tidak memakai kata sandi.' : 'Gunakan kata sandi akun Supabase Anda.'}
               </span>
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 px-4 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm"
+              disabled={isLoading}
+              className="w-full py-2.5 px-4 rounded-xl bg-[#142544] hover:bg-[#0B1730] disabled:opacity-60 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm"
             >
-              <span>Masuk ke Dashboard</span>
+              <span>{isLoading ? 'Memeriksa akun...' : 'Masuk ke Dashboard'}</span>
               <ArrowRight className="w-4 h-4 text-[#C9A34E]" />
             </button>
           </form>

@@ -46,7 +46,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
   onSuccess,
   initialData,
 }) => {
-  const { currentUser, isAdmin } = useAuth();
+  const { currentUser, isAdmin, isDemoMode } = useAuth();
 
   const isEditing = !!initialData;
 
@@ -67,8 +67,10 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
   const [bathrooms, setBathrooms] = useState<number>(initialData?.bathrooms || 2);
   const [floors, setFloors] = useState<number>(initialData?.floors || 1);
   const [parkingSpaces, setParkingSpaces] = useState<number>(initialData?.parking_spaces || 1);
-  const [image, setImage] = useState(initialData?.image || PRESET_IMAGES[0].url);
+  const [image, setImage] = useState(initialData?.image || (isDemoMode ? PRESET_IMAGES[0].url : ''));
   const [description, setDescription] = useState(initialData?.description || '');
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!isOpen) return null;
 
@@ -81,7 +83,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
       .replace(/^-+|-+$/g, '');
   };
 
-  const handleSubmit = (targetStatus: PropertyStatus) => {
+  const handleSubmit = async (targetStatus: PropertyStatus) => {
     if (!title.trim() || !address.trim() || !description.trim()) {
       alert('Mohon lengkapi Judul, Alamat, dan Deskripsi properti.');
       return;
@@ -91,10 +93,12 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
       ? initialData.slug
       : `${generateSlug(title)}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    if (isEditing && initialData) {
-      propertyRepository.update(
-        initialData.id,
-        {
+    setError(null);
+    setIsSaving(true);
+    let warning: string | undefined;
+    try {
+      if (isEditing && initialData) {
+        const updates = {
           title,
           property_type: propertyType,
           listing_type: listingType,
@@ -111,40 +115,56 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
           image,
           description,
           status: targetStatus,
-        },
-        currentUser
-      );
-    } else {
-      const newProp: Property = {
-        id: `prop-${Date.now()}`,
-        owner_agent_id: currentUser.id,
-        title,
-        slug,
-        property_type: propertyType,
-        listing_type: listingType,
-        price,
-        province: 'Jawa Timur',
-        city: 'Jember',
-        district,
-        village,
-        address,
-        land_area: landArea,
-        building_area: buildingArea,
-        bedrooms,
-        bathrooms,
-        floors,
-        parking_spaces: parkingSpaces,
-        image,
-        description,
-        status: targetStatus,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      propertyRepository.create(newProp, currentUser);
-    }
+          rejection_reason: undefined,
+        };
+        if (isDemoMode) {
+          propertyRepository.update(initialData.id, updates, currentUser);
+        } else {
+          const result = await propertyRepository.updateAsync(initialData.id, updates, currentUser);
+          warning = result.warning;
+        }
+      } else {
+        const newProp: Property = {
+          id: `prop-${Date.now()}`,
+          owner_agent_id: currentUser.id,
+          title,
+          slug,
+          property_type: propertyType,
+          listing_type: listingType,
+          price,
+          province: 'Jawa Timur',
+          city: 'Jember',
+          district,
+          village,
+          address,
+          land_area: landArea,
+          building_area: buildingArea,
+          bedrooms,
+          bathrooms,
+          floors,
+          parking_spaces: parkingSpaces,
+          image,
+          description,
+          status: targetStatus,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        if (isDemoMode) {
+          propertyRepository.create(newProp, currentUser);
+        } else {
+          const result = await propertyRepository.createAsync(newProp, currentUser);
+          warning = result.warning;
+        }
+      }
 
-    onSuccess();
-    onClose();
+      onSuccess();
+      onClose();
+      if (warning) alert(warning);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Listing gagal disimpan.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -170,6 +190,11 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
 
         {/* Form Body */}
         <div className="p-6 overflow-y-auto space-y-6 text-xs text-[#142544]">
+          {error && (
+            <div role="alert" className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700">
+              {error}
+            </div>
+          )}
           {/* Main Info */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-[#C9A34E] uppercase tracking-wider">
@@ -349,24 +374,28 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
             </h3>
 
             <div>
-              <label className="block font-semibold mb-1">Pilih Foto Cepat / URL Gambar</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
-                {PRESET_IMAGES.map((preset) => (
-                  <button
-                    key={preset.url}
-                    type="button"
-                    onClick={() => setImage(preset.url)}
-                    className={`relative rounded-lg overflow-hidden border-2 text-left h-16 group ${
-                      image === preset.url ? 'border-[#C9A34E] ring-2 ring-[#C9A34E]' : 'border-transparent'
-                    }`}
-                  >
-                    <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
-                    <span className="absolute inset-0 bg-black/40 flex items-end p-1 text-[10px] text-white font-medium">
-                      {preset.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              <label className="block font-semibold mb-1">
+                {isDemoMode ? 'Pilih Foto Cepat / URL Gambar' : 'URL Foto Properti (opsional)'}
+              </label>
+              {isDemoMode && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
+                  {PRESET_IMAGES.map((preset) => (
+                    <button
+                      key={preset.url}
+                      type="button"
+                      onClick={() => setImage(preset.url)}
+                      className={`relative rounded-lg overflow-hidden border-2 text-left h-16 group ${
+                        image === preset.url ? 'border-[#C9A34E] ring-2 ring-[#C9A34E]' : 'border-transparent'
+                      }`}
+                    >
+                      <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
+                      <span className="absolute inset-0 bg-black/40 flex items-end p-1 text-[10px] text-white font-medium">
+                        {preset.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
               <input
                 type="url"
                 value={image}
@@ -395,6 +424,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
           <button
             type="button"
             onClick={onClose}
+            disabled={isSaving}
             className="w-full sm:w-auto px-4 py-2 rounded-xl border border-[#E8E5DD] text-[#6B7280] hover:bg-white text-xs font-semibold"
           >
             Batal
@@ -403,15 +433,17 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               type="button"
-              onClick={() => handleSubmit('draft')}
+              onClick={() => void handleSubmit('draft')}
+              disabled={isSaving}
               className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-white border border-[#142544] text-[#142544] hover:bg-[#142544]/5 text-xs font-bold"
             >
-              Simpan sebagai Draf
+              {isSaving ? 'Menyimpan...' : 'Simpan sebagai Draf'}
             </button>
 
             <button
               type="button"
-              onClick={() => handleSubmit('pending_review')}
+              onClick={() => void handleSubmit('pending_review')}
+              disabled={isSaving}
               className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-[#C9A34E] hover:bg-[#E0C477] text-[#142544] text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-sm"
             >
               <Sparkles className="w-4 h-4" />
@@ -421,7 +453,8 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
             {isAdmin && (
               <button
                 type="button"
-                onClick={() => handleSubmit('published')}
+                onClick={() => void handleSubmit('published')}
+                disabled={isSaving}
                 className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white text-xs font-bold flex items-center justify-center gap-1.5"
               >
                 <Check className="w-4 h-4 text-[#C9A34E]" />

@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 export const PropertyListingsManager: React.FC = () => {
-  const { currentUser, isAdmin } = useAuth();
+  const { currentUser, isAdmin, isDemoMode } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [agents, setAgents] = useState<Record<string, Profile>>({});
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -31,22 +31,31 @@ export const PropertyListingsManager: React.FC = () => {
   const [propertyTypeFilter, setPropertyTypeFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadProperties = () => {
-    const all = propertyRepository.findAll();
-    setProperties(all);
-
-    const allAgents = userRepository.findAll();
-    const map: Record<string, Profile> = {};
-    allAgents.forEach(a => {
-      map[a.id] = a;
-    });
-    setAgents(map);
+  const loadProperties = async () => {
+    try {
+      setLoadError(null);
+      const [all, allAgents] = isDemoMode
+        ? [propertyRepository.findAll(), userRepository.findAll()]
+        : await Promise.all([
+            propertyRepository.findManagedAsync(currentUser, isAdmin),
+            userRepository.findAllAsync(),
+          ]);
+      setProperties(all);
+      const map: Record<string, Profile> = {};
+      allAgents.forEach(a => {
+        map[a.id] = a;
+      });
+      setAgents(map);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Gagal memuat listing.');
+    }
   };
 
   useEffect(() => {
-    loadProperties();
-  }, [currentUser]);
+    void loadProperties();
+  }, [currentUser, isAdmin, isDemoMode]);
 
   // Role scoping:
   // Admins see all listings; Agents see their own listings by default, but can toggle to see all published
@@ -86,22 +95,37 @@ export const PropertyListingsManager: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (prop: Property) => {
+  const handleDelete = async (prop: Property) => {
     if (confirm(`Yakin ingin menghapus listing "${prop.title}"?`)) {
-      propertyRepository.delete(prop.id, currentUser);
-      loadProperties();
+      try {
+        if (isDemoMode) propertyRepository.delete(prop.id, currentUser);
+        else await propertyRepository.deleteAsync(prop.id, currentUser);
+        await loadProperties();
+      } catch (error) {
+        setLoadError(error instanceof Error ? error.message : 'Listing gagal dihapus.');
+      }
     }
   };
 
-  const handleSubmitReview = (prop: Property) => {
-    propertyRepository.submitForReview(prop.id, currentUser);
-    loadProperties();
+  const handleSubmitReview = async (prop: Property) => {
+    try {
+      if (isDemoMode) propertyRepository.submitForReview(prop.id, currentUser);
+      else await propertyRepository.setStatusAsync(prop.id, 'pending_review', currentUser);
+      await loadProperties();
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Listing gagal diajukan untuk review.');
+    }
   };
 
-  const handleArchive = (prop: Property) => {
+  const handleArchive = async (prop: Property) => {
     if (confirm(`Arsipkan properti "${prop.title}"? Properti tidak akan tampil di website publik.`)) {
-      propertyRepository.archiveListing(prop.id, currentUser);
-      loadProperties();
+      try {
+        if (isDemoMode) propertyRepository.archiveListing(prop.id, currentUser);
+        else await propertyRepository.setStatusAsync(prop.id, 'archived', currentUser);
+        await loadProperties();
+      } catch (error) {
+        setLoadError(error instanceof Error ? error.message : 'Listing gagal diarsipkan.');
+      }
     }
   };
 
@@ -133,6 +157,11 @@ export const PropertyListingsManager: React.FC = () => {
       }
     >
       <div className="space-y-5">
+        {loadError && (
+          <div role="alert" className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700">
+            {loadError}
+          </div>
+        )}
         {/* Top Filters & Tabs */}
         <div className="bg-white p-4 rounded-2xl border border-[#E8E5DD] shadow-xs space-y-4">
           {/* Status Tabs */}
@@ -211,11 +240,18 @@ export const PropertyListingsManager: React.FC = () => {
                 >
                   {/* Image & Badges */}
                   <div className="relative aspect-16/10 bg-gray-100 overflow-hidden">
-                    <img
-                      src={prop.image}
-                      alt={prop.title}
-                      className="w-full h-full object-cover"
-                    />
+                    {prop.image ? (
+                      <img
+                        src={prop.image}
+                        alt={prop.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#6B7280]">
+                        <Building2 className="w-8 h-8" />
+                        <span className="text-[10px]">Foto belum tersedia</span>
+                      </div>
+                    )}
                     <div className="absolute top-2 left-2 flex items-center gap-1.5 flex-wrap">
                       <span
                         className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded shadow-xs ${
@@ -312,12 +348,13 @@ export const PropertyListingsManager: React.FC = () => {
                             onClick={() => handleOpenEdit(prop)}
                             className="p-1.5 rounded-lg border border-[#E8E5DD] hover:bg-[#F8F7F3] text-[#142544]"
                             title="Edit Listing"
+                            disabled={!isDemoMode && !isAdmin && prop.status === 'published'}
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                         )}
 
-                        {canEdit && (
+                        {canEdit && isDemoMode && (
                           <button
                             onClick={() => handleDelete(prop)}
                             className="p-1.5 rounded-lg border border-[#E8E5DD] hover:bg-rose-50 text-rose-600"
@@ -332,7 +369,7 @@ export const PropertyListingsManager: React.FC = () => {
                       <div className="flex items-center gap-1.5">
                         {(prop.status === 'draft' || prop.status === 'rejected') && (
                           <button
-                            onClick={() => handleSubmitReview(prop)}
+                            onClick={() => void handleSubmitReview(prop)}
                             className="px-2.5 py-1 rounded-lg bg-[#C9A34E] hover:bg-[#E0C477] text-[#142544] text-[10px] font-bold flex items-center gap-1 shadow-xs"
                           >
                             <Send className="w-3 h-3" />
@@ -342,7 +379,7 @@ export const PropertyListingsManager: React.FC = () => {
 
                         {prop.status === 'published' && canEdit && (
                           <button
-                            onClick={() => handleArchive(prop)}
+                            onClick={() => void handleArchive(prop)}
                             className="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-[#6B7280] text-[10px] font-semibold flex items-center gap-1"
                           >
                             <Archive className="w-3 h-3" />
