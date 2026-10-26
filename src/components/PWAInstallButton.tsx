@@ -14,6 +14,22 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
   const [showGuideModal, setShowGuideModal] = useState(false);
   const [installSuccess, setInstallSuccess] = useState(false);
+  const isPortalHost = window.location.hostname === 'app.sentraproperty.com';
+  const isInstallRequested = new URLSearchParams(window.location.search).get('install') === '1';
+
+  if (!isPortalHost) {
+    return (
+      <a
+        href="https://app.sentraproperty.com/?install=1"
+        className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 border border-[#C9A34E] bg-[#C9A34E] text-[#0B1730] shadow-sm hover:bg-[#E0C477] hover:shadow-md ${className}`}
+        title="Buka portal Sentra Property untuk memasangnya"
+      >
+        <Download className="w-3.5 h-3.5 text-current" />
+        <span>Instal Portal</span>
+        <ExternalLink className="w-3 h-3 text-current" />
+      </a>
+    );
+  }
 
   // If already installed, hide button or show installed status
   if (isInstalled) {
@@ -51,7 +67,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
         title="Pasang Sentra Property di perangkat Anda"
       >
         <Download className="w-3.5 h-3.5 text-current" />
-        <span>Instal Aplikasi</span>
+        <span>{isInstallRequested ? 'Lanjutkan Instalasi' : 'Instal Aplikasi'}</span>
       </button>
 
       {/* Installation Guide Modal for non-supported or manual browser installs */}

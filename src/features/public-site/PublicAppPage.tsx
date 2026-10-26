@@ -5,6 +5,7 @@ import { Property } from '@/src/types';
 import { BUSINESS_CONFIG } from '@/src/lib/constants';
 import { readPublicAppFavorites, writePublicAppFavorites } from './publicAppFavorites';
 import { loadPublicAppProperties } from './publicAppSampleProperties';
+import { PWAInstallButton } from '@/src/components/PWAInstallButton';
 import { Building, Heart, MapPin, Search, SlidersHorizontal, X } from 'lucide-react';
 
 type ListingTypeFilter = 'semua' | 'jual' | 'sewa';
@@ -177,10 +178,11 @@ export const PublicAppPage: React.FC<{ basePath?: string }> = ({ basePath = '' }
   return (
     <div className="public-app-shell min-h-screen bg-[#F8F7F3] text-[#142544]">
       <header className="sticky top-0 z-30 border-b border-[#E8E5DD] bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
           <a href="#home" aria-label="Sentra Property Jember" className="flex items-center">
             <img src="/sentra-property-brand.png" alt="Sentra Property Jember" className="h-14 w-auto object-contain" />
           </a>
+          <PWAInstallButton />
         </div>
       </header>
 
