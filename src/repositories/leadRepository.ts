@@ -1,5 +1,6 @@
 import { Lead } from '../types';
 import { INITIAL_LEADS } from '../data/demo-data';
+import { supabase, supabaseConfigurationError } from '../lib/supabase';
 
 const STORAGE_KEY = 'sentra_property_leads_v2';
 
@@ -33,6 +34,32 @@ export const leadRepository = {
     return [...data].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   },
 
+  findAllAsync: async (): Promise<Lead[]> => {
+    if (!supabase) {
+      if (supabaseConfigurationError) throw new Error(supabaseConfigurationError);
+      return leadRepository.findAll();
+    }
+
+    const { data, error } = await supabase
+      .from('leads')
+      .select('id,property_id,assigned_agent_id,full_name,phone,email,message,status,created_at,updated_at')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error('Gagal memuat pesan minat dari Supabase.', { cause: error });
+
+    return (data || []).map(row => ({
+      id: row.id,
+      property_id: row.property_id || undefined,
+      assigned_agent_id: row.assigned_agent_id || undefined,
+      full_name: row.full_name,
+      phone: row.phone,
+      email: row.email || undefined,
+      message: row.message || '',
+      status: row.status,
+      created_at: row.created_at,
+      updated_at: row.updated_at || undefined,
+    }));
+  },
+
   findById: (id: string): Lead | undefined => {
     return loadData().find(l => l.id === id);
   },
@@ -53,6 +80,43 @@ export const leadRepository = {
     const updated = [newLead, ...current];
     saveData(updated);
     return newLead;
+  },
+
+  submitPublicInterest: async (lead: Pick<Lead, 'property_id' | 'assigned_agent_id' | 'full_name' | 'phone' | 'message'>): Promise<void> => {
+    if (!supabase) {
+      if (supabaseConfigurationError) throw new Error(supabaseConfigurationError);
+      leadRepository.create({ ...lead, status: 'new' });
+      return;
+    }
+
+    const { error } = await supabase.from('leads').insert({
+      property_id: lead.property_id,
+      assigned_agent_id: lead.assigned_agent_id,
+      full_name: lead.full_name,
+      phone: lead.phone,
+      message: lead.message,
+      status: 'new',
+    });
+    if (error) {
+      throw new Error('Pesan minat belum terkirim. Silakan coba lagi atau hubungi kami melalui WhatsApp.', { cause: error });
+    }
+  },
+
+  updateStatusAsync: async (id: string, status: Lead['status']): Promise<void> => {
+    if (!supabase) {
+      if (supabaseConfigurationError) throw new Error(supabaseConfigurationError);
+      leadRepository.updateStatus(id, status);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('leads')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select('id')
+      .maybeSingle();
+    if (error) throw new Error('Status pesan minat tidak dapat diperbarui.', { cause: error });
+    if (!data) throw new Error('Pesan minat tidak ditemukan atau tidak dapat diakses akun ini.');
   },
 
   updateStatus: (id: string, status: Lead['status'], notes?: string): Lead | undefined => {

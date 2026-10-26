@@ -7,7 +7,6 @@ import { Property } from '@/src/types';
 import { leadRepository } from '@/src/repositories/leadRepository';
 import { PROFILES } from '@/src/data/demo-data';
 import { BUSINESS_CONFIG } from '../../lib/constants';
-import { supabase } from '../../lib/supabase';
 import {
   MapPin,
   Bed,
@@ -39,6 +38,8 @@ export const DetailPage: React.FC = () => {
   const [leadPhone, setLeadPhone] = useState('');
   const [leadMessage, setLeadMessage] = useState('');
   const [submittedLead, setSubmittedLead] = useState(false);
+  const [leadSubmitError, setLeadSubmitError] = useState<string | null>(null);
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
@@ -139,28 +140,39 @@ export const DetailPage: React.FC = () => {
     .filter((p) => p.id !== property.id && (p.property_type === property.property_type || p.listing_type === property.listing_type))
     .slice(0, 3);
 
-  const handleLeadSubmit = (e: React.FormEvent) => {
+  const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!leadName || !leadPhone) return;
+    const fullName = leadName.trim();
+    const phone = leadPhone.trim();
+    const message = leadMessage.trim() || `Tertarik pada ${property.title} melalui website publik.`;
+    if (!fullName || !phone) {
+      setLeadSubmitError('Nama dan nomor WhatsApp wajib diisi.');
+      return;
+    }
+    if (fullName.length > 120 || phone.length > 32 || message.length > 2000) {
+      setLeadSubmitError('Periksa kembali panjang nama, nomor telepon, atau pesan Anda.');
+      return;
+    }
 
-    if (supabase) return;
-
-    leadRepository.create({
-      property_id: property.id,
-      property_title: property.title,
-      assigned_agent_id: property.owner_agent_id,
-      full_name: leadName,
-      phone: leadPhone,
-      message: leadMessage || 'Tertarik pada properti ini melalui website publik.',
-      status: 'new',
-    });
-
-    setSubmittedLead(true);
-    setTimeout(() => {
+    setLeadSubmitError(null);
+    setIsSubmittingLead(true);
+    try {
+      await leadRepository.submitPublicInterest({
+        property_id: property.id,
+        assigned_agent_id: property.owner_agent_id,
+        full_name: fullName,
+        phone,
+        message,
+      });
+      setSubmittedLead(true);
       setLeadName('');
       setLeadPhone('');
       setLeadMessage('');
-    }, 4000);
+    } catch (error) {
+      setLeadSubmitError(error instanceof Error ? error.message : 'Pesan minat gagal dikirim.');
+    } finally {
+      setIsSubmittingLead(false);
+    }
   };
 
   const whatsappMessage = encodeURIComponent(
@@ -399,23 +411,29 @@ export const DetailPage: React.FC = () => {
               <div className="bg-white rounded-2xl border border-[#E8E5DD] p-6 shadow-sm text-[#142544]">
                 <h3 className="font-bold text-sm text-[#142544] mb-1">Kirim Minat Properti</h3>
                 <p className="text-xs text-[#6B7280] mb-4">
-                  {supabase
-                    ? 'Form pengiriman minat belum tersedia; hubungi kami melalui WhatsApp atau telepon.'
-                    : 'Tinggalkan kontak Anda, konsultan kami akan menghubungi Anda dalam waktu 1x24 jam.'}
+                  Tinggalkan kontak Anda, konsultan kami akan menghubungi Anda dalam waktu 1x24 jam.
                 </p>
 
-                {supabase ? (
-                  <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
-                    Form minat belum terhubung ke Supabase. Silakan gunakan tombol WhatsApp atau telepon di atas.
-                  </div>
-                ) : submittedLead ? (
+                {submittedLead ? (
                   <div className="p-4 rounded-xl bg-[#F8F7F3] border border-[#C9A34E] text-center text-xs text-[#142544] animate-in fade-in">
                     <CheckCircle className="w-6 h-6 text-[#C9A34E] mx-auto mb-2" />
                     <strong className="block mb-1">Permintaan Anda Berhasil Dikirim!</strong>
                     <span>Agen kami akan segera menghubungi nomor telepon Anda.</span>
+                    <button
+                      type="button"
+                      onClick={() => setSubmittedLead(false)}
+                      className="mt-3 block w-full font-bold text-[#142544] underline underline-offset-2"
+                    >
+                      Kirim minat lain
+                    </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleLeadSubmit} className="space-y-3">
+                  <form onSubmit={(event) => void handleLeadSubmit(event)} className="space-y-3">
+                    {leadSubmitError && (
+                      <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+                        {leadSubmitError}
+                      </div>
+                    )}
                     <div>
                       <label className="text-[11px] font-bold text-[#142544] block mb-1">
                         Nama Lengkap <span className="text-red-500">*</span>
@@ -423,6 +441,7 @@ export const DetailPage: React.FC = () => {
                       <input
                         type="text"
                         required
+                        maxLength={120}
                         value={leadName}
                         onChange={(e) => setLeadName(e.target.value)}
                         placeholder="Nama Anda"
@@ -437,6 +456,7 @@ export const DetailPage: React.FC = () => {
                       <input
                         type="tel"
                         required
+                        maxLength={32}
                         value={leadPhone}
                         onChange={(e) => setLeadPhone(e.target.value)}
                         placeholder="0812xxxxxxx"
@@ -450,6 +470,7 @@ export const DetailPage: React.FC = () => {
                       </label>
                       <textarea
                         rows={3}
+                        maxLength={2000}
                         value={leadMessage}
                         onChange={(e) => setLeadMessage(e.target.value)}
                         placeholder="Contoh: Saya ingin survei hari Sabtu pagi..."
@@ -459,10 +480,11 @@ export const DetailPage: React.FC = () => {
 
                     <button
                       type="submit"
+                      disabled={isSubmittingLead}
                       className="w-full py-2.5 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 shadow-sm transition"
                     >
                       <Send className="w-3.5 h-3.5 text-[#C9A34E]" />
-                      <span>Kirim Pesan Minat</span>
+                      <span>{isSubmittingLead ? 'Mengirim...' : 'Kirim Pesan Minat'}</span>
                     </button>
                   </form>
                 )}

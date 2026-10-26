@@ -40,7 +40,7 @@ Jalankan secara manual hanya setelah skema dan kebijakan RLS ditinjau serta pemi
 - Form produksi mengunggah file foto langsung dari browser ke Cloudinary setelah memperoleh tanda tangan singkat dari Supabase Edge Function. Secret API Cloudinary hanya disimpan di Supabase Function Secrets, bukan di bundle browser. Foto dioptimalkan di perangkat menjadi WebP jika hasilnya lebih kecil; file yang dipilih dibatasi maksimal 10 MB.
 - Supabase hanya menyimpan URL CDN Cloudinary sebagai metadata pada `property_images.storage_path`; byte foto tidak diunggah atau disajikan melalui Supabase Storage. Listing yang belum terbit tetap tidak ditampilkan pada katalog publik. URL Cloudinary merupakan URL publik, jadi gambar yang URL-nya dibagikan dapat dibuka langsung.
 - [Cloudinary Free](https://cloudinary.com/pricing) saat ini menawarkan 25 monthly credits dan tidak memerlukan kartu kredit. Upload, penyimpanan, transformasi, dan delivery menggunakan batas paket Cloudinary; cek pemakaian pada dashboard Cloudinary karena kuota dan harga dapat berubah.
-- Dashboard listing dan review memakai Supabase saat terkonfigurasi. Leads, manajemen agen, ringkasan demo, serta log aktivitas lokal tetap hanya tersedia pada mode demo dan tidak ditampilkan sebagai data produksi.
+- Dashboard listing, review, dan inbox leads memakai Supabase saat terkonfigurasi. Pengunjung dapat mengirim minat hanya untuk listing `published`; RLS membatasi penyimpanan lead ke listing terbit dan menetapkan lead ke agen pemiliknya. Manajemen agen, ringkasan demo, catatan follow-up, dan log aktivitas lokal tetap hanya tersedia pada mode demo.
 
 ## Menyiapkan upload foto Cloudinary
 

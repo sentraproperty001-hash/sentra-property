@@ -22,9 +22,11 @@ import {
 } from 'lucide-react';
 
 export const LeadsManagerPage: React.FC = () => {
-  const { currentUser, isAdmin } = useAuth();
+  const { currentUser, isAdmin, isDemoMode } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -38,15 +40,31 @@ export const LeadsManagerPage: React.FC = () => {
   const [newPropertyId, setNewPropertyId] = useState('');
   const [newMessage, setNewMessage] = useState('');
 
-  const loadData = () => {
-    const all = leadRepository.findAll();
-    setLeads(all);
-    setProperties(propertyRepository.findAll());
+  const loadData = async () => {
+    setLoadError(null);
+    try {
+      const [allLeads, allProperties] = isDemoMode
+        ? [leadRepository.findAll(), propertyRepository.findAll()]
+        : await Promise.all([
+            leadRepository.findAllAsync(),
+            propertyRepository.findManagedAsync(currentUser, isAdmin),
+          ]);
+      const propertyTitles = new Map(allProperties.map(property => [property.id, property.title]));
+      setLeads(allLeads.map(lead => ({
+        ...lead,
+        property_title: lead.property_id ? propertyTitles.get(lead.property_id) : undefined,
+      })));
+      setProperties(allProperties);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Gagal memuat pesan minat.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadData();
-  }, [currentUser]);
+    void loadData();
+  }, [currentUser, isAdmin, isDemoMode]);
 
   // Role scoping:
   // Admins see all leads. Agents see leads assigned to them or unassigned leads.
@@ -70,9 +88,14 @@ export const LeadsManagerPage: React.FC = () => {
     return true;
   });
 
-  const handleStatusChange = (leadId: string, newStatus: Lead['status']) => {
-    leadRepository.updateStatus(leadId, newStatus);
-    loadData();
+  const handleStatusChange = async (leadId: string, newStatus: Lead['status']) => {
+    try {
+      if (isDemoMode) leadRepository.updateStatus(leadId, newStatus);
+      else await leadRepository.updateStatusAsync(leadId, newStatus);
+      await loadData();
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Status pesan minat gagal diperbarui.');
+    }
   };
 
   const handleStartEditNotes = (lead: Lead) => {
@@ -80,16 +103,16 @@ export const LeadsManagerPage: React.FC = () => {
     setTempNotes(lead.notes || '');
   };
 
-  const handleSaveNotes = (leadId: string) => {
+  const handleSaveNotes = async (leadId: string) => {
     leadRepository.updateNotes(leadId, tempNotes);
     setEditingNotesId(null);
-    loadData();
+    await loadData();
   };
 
-  const handleDeleteLead = (id: string, name: string) => {
+  const handleDeleteLead = async (id: string, name: string) => {
     if (confirm(`Hapus data prospek atas nama ${name}?`)) {
       leadRepository.delete(id);
-      loadData();
+      await loadData();
     }
   };
 
@@ -134,16 +157,28 @@ export const LeadsManagerPage: React.FC = () => {
       title="Manajemen Leads & Prospek"
       subtitle="Kelola minat calon pembeli/penyewa, jadwalkan survei, dan perbarui status follow-up"
       actionButton={
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white text-xs font-bold flex items-center gap-2 shadow-sm transition"
-        >
-          <Plus className="w-4 h-4 text-[#C9A34E]" />
-          <span>Tambah Lead Manual</span>
-        </button>
+        isDemoMode ? (
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="px-4 py-2 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white text-xs font-bold flex items-center gap-2 shadow-sm transition"
+          >
+            <Plus className="w-4 h-4 text-[#C9A34E]" />
+            <span>Tambah Lead Manual</span>
+          </button>
+        ) : undefined
       }
     >
       <div className="space-y-5">
+        {loadError && (
+          <div role="alert" className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700">
+            {loadError}
+          </div>
+        )}
+        {isLoading && (
+          <div role="status" className="p-3 rounded-xl bg-white border border-[#E8E5DD] text-xs text-[#6B7280]">
+            Memuat pesan minat...
+          </div>
+        )}
         {/* Top Filters */}
         <div className="bg-white p-4 rounded-2xl border border-[#E8E5DD] shadow-xs space-y-4">
           {/* Status Tabs */}
@@ -190,7 +225,11 @@ export const LeadsManagerPage: React.FC = () => {
         </div>
 
         {/* Leads List */}
-        {displayedLeads.length === 0 ? (
+        {isLoading ? (
+          <div role="status" className="bg-white p-12 text-center rounded-2xl border border-[#E8E5DD] shadow-xs text-xs text-[#6B7280]">
+            Memuat pesan minat...
+          </div>
+        ) : displayedLeads.length === 0 ? (
           <div className="bg-white p-12 text-center rounded-2xl border border-[#E8E5DD] shadow-xs">
             <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <h3 className="text-sm font-bold text-[#142544]">Belum ada data leads</h3>
@@ -268,7 +307,7 @@ export const LeadsManagerPage: React.FC = () => {
                     <div className="pt-2">
                       <div className="flex items-center justify-between text-[11px] mb-1">
                         <span className="font-bold text-[#6B7280]">Catatan Follow-up Agen:</span>
-                        {!isEditingNotes && (
+                        {isDemoMode && !isEditingNotes && (
                           <button
                             onClick={() => handleStartEditNotes(lead)}
                             className="text-[#C9A34E] hover:underline font-semibold flex items-center gap-1"
@@ -279,7 +318,7 @@ export const LeadsManagerPage: React.FC = () => {
                         )}
                       </div>
 
-                      {isEditingNotes ? (
+                      {isDemoMode && isEditingNotes ? (
                         <div className="flex items-center gap-2">
                           <input
                             type="text"
@@ -302,11 +341,11 @@ export const LeadsManagerPage: React.FC = () => {
                             <X className="w-4 h-4" />
                           </button>
                         </div>
-                      ) : (
+                      ) : isDemoMode ? (
                         <p className="text-xs text-[#142544] font-medium">
                           {lead.notes ? lead.notes : <span className="text-gray-400 italic">Belum ada catatan follow-up</span>}
                         </p>
-                      )}
+                      ) : null}
                     </div>
                   </div>
 
@@ -318,7 +357,7 @@ export const LeadsManagerPage: React.FC = () => {
                       </label>
                       <select
                         value={lead.status}
-                        onChange={(e) => handleStatusChange(lead.id, e.target.value as any)}
+                        onChange={(e) => void handleStatusChange(lead.id, e.target.value as Lead['status'])}
                         className="w-full px-2.5 py-1.5 border border-[#E8E5DD] rounded-xl text-xs font-bold text-[#142544] focus:ring-1 focus:ring-[#C9A34E]"
                       >
                         <option value="new">Prospek Baru</option>
@@ -339,7 +378,7 @@ export const LeadsManagerPage: React.FC = () => {
                         <span>Chat WhatsApp</span>
                       </a>
 
-                      {isAdmin && (
+                      {isAdmin && isDemoMode && (
                         <button
                           onClick={() => handleDeleteLead(lead.id, lead.full_name)}
                           className="p-1.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50"
@@ -358,7 +397,7 @@ export const LeadsManagerPage: React.FC = () => {
       </div>
 
       {/* Manual Add Lead Modal */}
-      {isAddModalOpen && (
+      {isAddModalOpen && isDemoMode && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 border border-[#E8E5DD] shadow-2xl">
             <div className="flex items-center justify-between mb-4">

@@ -66,7 +66,7 @@ export default function App() {
               <Route path="/dashboard" element={<DashboardAccess><DemoDashboardOnly><DashboardOverview /></DemoDashboardOnly></DashboardAccess>} />
               <Route path="/dashboard/properties" element={<DashboardAccess><PropertyListingsManager /></DashboardAccess>} />
               <Route path="/dashboard/approvals" element={<DashboardAccess><ListingApprovalPage /></DashboardAccess>} />
-              <Route path="/dashboard/leads" element={<DashboardAccess><DemoDashboardOnly><LeadsManagerPage /></DemoDashboardOnly></DashboardAccess>} />
+              <Route path="/dashboard/leads" element={<DashboardAccess><LeadsManagerPage /></DashboardAccess>} />
               <Route path="/dashboard/agents" element={<DashboardAccess><DemoDashboardOnly><AgentManagementPage /></DemoDashboardOnly></DashboardAccess>} />
               <Route path="/dashboard/activities" element={<DashboardAccess><DemoDashboardOnly><ActivityLogPage /></DemoDashboardOnly></DashboardAccess>} />
 

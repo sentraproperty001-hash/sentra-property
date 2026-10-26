@@ -96,7 +96,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       label: 'Manajemen Leads',
       icon: Users,
       badge: newLeadsCount > 0 ? newLeadsCount : undefined,
-      allowed: isDemoMode,
+      allowed: true,
     },
     {
       to: '/dashboard/agents',

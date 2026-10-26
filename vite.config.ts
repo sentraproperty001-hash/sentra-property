@@ -8,7 +8,7 @@ export default defineConfig(() => {
   return {
     plugins: [react(), VitePWA({
       registerType: 'prompt',
-      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon-32x32.png', 'apple-touch-icon.png'],
       manifest: {
         id: '/',
         name: 'Sentra Property',
