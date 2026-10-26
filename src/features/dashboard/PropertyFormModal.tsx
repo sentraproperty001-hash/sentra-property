@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Property, PropertyStatus } from '../../types';
 import { useAuth } from '../auth/AuthContext';
 import { propertyRepository } from '@/src/repositories/propertyRepository';
+import { uploadPropertyImage } from '@/src/lib/cloudinary';
 import { X, Building, Check, Sparkles, Image as ImageIcon } from 'lucide-react';
 
 interface PropertyFormModalProps {
@@ -68,9 +69,21 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
   const [floors, setFloors] = useState<number>(initialData?.floors || 1);
   const [parkingSpaces, setParkingSpaces] = useState<number>(initialData?.parking_spaces || 1);
   const [image, setImage] = useState(initialData?.image || (isDemoMode ? PRESET_IMAGES[0].url : ''));
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [description, setDescription] = useState(initialData?.description || '');
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview(null);
+      return;
+    }
+    const previewUrl = URL.createObjectURL(imageFile);
+    setImagePreview(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [imageFile]);
 
   if (!isOpen) return null;
 
@@ -97,6 +110,10 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
     setIsSaving(true);
     let warning: string | undefined;
     try {
+      const propertyImage = !isDemoMode && imageFile
+        ? await uploadPropertyImage(imageFile)
+        : image;
+
       if (isEditing && initialData) {
         const updates = {
           title,
@@ -112,7 +129,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
           bathrooms,
           floors,
           parking_spaces: parkingSpaces,
-          image,
+          image: propertyImage,
           description,
           status: targetStatus,
           rejection_reason: undefined,
@@ -143,7 +160,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
           bathrooms,
           floors,
           parking_spaces: parkingSpaces,
-          image,
+          image: propertyImage,
           description,
           status: targetStatus,
           created_at: new Date().toISOString(),
@@ -182,6 +199,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            disabled={isSaving}
             className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10"
           >
             <X className="w-5 h-5" />
@@ -375,7 +393,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
 
             <div>
               <label className="block font-semibold mb-1">
-                {isDemoMode ? 'Pilih Foto Cepat / URL Gambar' : 'URL Foto Properti (opsional)'}
+                {isDemoMode ? 'Pilih Foto Cepat / URL Gambar' : 'Upload Foto Properti (opsional)'}
               </label>
               {isDemoMode && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
@@ -383,7 +401,10 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
                     <button
                       key={preset.url}
                       type="button"
-                      onClick={() => setImage(preset.url)}
+                      onClick={() => {
+                        setImage(preset.url);
+                        setImageFile(null);
+                      }}
                       className={`relative rounded-lg overflow-hidden border-2 text-left h-16 group ${
                         image === preset.url ? 'border-[#C9A34E] ring-2 ring-[#C9A34E]' : 'border-transparent'
                       }`}
@@ -396,13 +417,69 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
                   ))}
                 </div>
               )}
-              <input
-                type="url"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-                placeholder="https://..."
-                className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#C9A34E]"
-              />
+              {isDemoMode ? (
+                <input
+                  type="url"
+                  value={image}
+                  onChange={(e) => setImage(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#C9A34E]"
+                />
+              ) : (
+                <div className="space-y-2">
+                  <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[#C9A34E] bg-[#F8F7F3] px-4 py-5 text-xs font-semibold text-[#142544] hover:bg-[#C9A34E]/10">
+                    <ImageIcon className="h-4 w-4 text-[#C9A34E]" />
+                    <span>{imageFile ? 'Ganti foto dari perangkat' : 'Pilih foto dari perangkat'}</span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(event) => {
+                        const selectedFile = event.currentTarget.files?.[0] || null;
+                        event.currentTarget.value = '';
+                        if (!selectedFile) return;
+                        if (!['image/jpeg', 'image/png', 'image/webp'].includes(selectedFile.type)) {
+                          setImageFile(null);
+                          setImage(initialData?.image || '');
+                          setError('Pilih gambar JPG, PNG, atau WebP.');
+                          return;
+                        }
+                        if (selectedFile.size > 10 * 1024 * 1024) {
+                          setImageFile(null);
+                          setImage(initialData?.image || '');
+                          setError('Ukuran foto maksimal 10 MB.');
+                          return;
+                        }
+                        setError(null);
+                        setImage('');
+                        setImageFile(selectedFile);
+                      }}
+                      className="sr-only"
+                    />
+                  </label>
+                  <p className="text-[10px] text-[#6B7280]">
+                    JPG, PNG, atau WebP hingga 10 MB. Foto dioptimalkan lalu diunggah ke Cloudinary; kuota bulanan mengikuti paket akun Cloudinary.
+                  </p>
+                  {(imagePreview || image) && (
+                    <div className="relative h-36 overflow-hidden rounded-xl border border-[#E8E5DD] bg-[#142544]">
+                      <img
+                        src={imagePreview || image}
+                        alt="Pratinjau foto properti"
+                        className="h-full w-full object-contain"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImage('');
+                          setImageFile(null);
+                        }}
+                        className="absolute right-2 top-2 rounded-lg bg-white/90 px-2 py-1 text-[10px] font-semibold text-rose-700"
+                      >
+                        Hapus foto
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>
