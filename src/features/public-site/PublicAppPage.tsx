@@ -195,7 +195,7 @@ export const PublicAppPage: React.FC<{ basePath?: string }> = ({ basePath = '' }
   };
 
   const navigationClass = (item: typeof activeNavigation) => (
-    `flex min-h-10 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-center text-xs font-bold transition-colors ${
+    `flex min-h-9 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-1 py-2 text-center text-[9px] font-bold leading-tight whitespace-nowrap transition-colors sm:min-h-10 sm:px-3 sm:text-xs ${
       activeNavigation === item
         ? 'bg-[#142544] text-white shadow-sm'
         : 'bg-[#F8F7F3] text-[#142544] hover:bg-[#B49453]/15'
@@ -241,7 +241,7 @@ export const PublicAppPage: React.FC<{ basePath?: string }> = ({ basePath = '' }
         </section>
 
         <nav aria-label="Navigasi aplikasi" className="sticky top-[76px] z-20 border-b border-[#E8E5DD] bg-white shadow-sm">
-          <div className="mx-auto grid max-w-3xl grid-cols-2 gap-2 px-4 py-2.5 sm:flex sm:items-center">
+          <div className="mx-auto grid max-w-3xl grid-cols-4 gap-0.5 px-2 py-2 sm:gap-2 sm:px-4">
             <a
               href="#home"
               onClick={() => {
@@ -249,7 +249,7 @@ export const PublicAppPage: React.FC<{ basePath?: string }> = ({ basePath = '' }
                 setActiveNavigation('home');
               }}
               aria-current={activeNavigation === 'home' ? 'page' : undefined}
-              className={`${navigationClass('home')} sm:shrink-0`}
+              className={navigationClass('home')}
             >
               Beranda
             </a>
@@ -260,7 +260,7 @@ export const PublicAppPage: React.FC<{ basePath?: string }> = ({ basePath = '' }
                 setActiveNavigation('properties');
               }}
               aria-current={activeNavigation === 'properties' ? 'page' : undefined}
-              className={`${navigationClass('properties')} sm:shrink-0`}
+              className={navigationClass('properties')}
             >
               Cari properti
             </a>
@@ -283,7 +283,7 @@ export const PublicAppPage: React.FC<{ basePath?: string }> = ({ basePath = '' }
               aria-current={activeNavigation === 'contact' ? 'page' : undefined}
               className={navigationClass('contact')}
             >
-              <MessageCircle className="h-3.5 w-3.5 shrink-0" />
+              <MessageCircle className="hidden h-3.5 w-3.5 shrink-0 sm:block" />
               <span>Hubungi kami</span>
             </a>
           </div>
@@ -441,16 +441,14 @@ export const PublicAppPage: React.FC<{ basePath?: string }> = ({ basePath = '' }
         </section>
       </main>
 
-      <footer className="border-t border-[#E8E5DD] bg-white px-4 py-5">
-        <div className="mx-auto flex max-w-3xl flex-col gap-2 text-xs text-[#6B7280] sm:flex-row sm:items-center sm:justify-between">
+      <footer className="border-t border-[#D8C596] bg-gradient-to-br from-[#142544] via-[#10203C] to-[#0B1730] px-4 py-5 text-white">
+        <div className="mx-auto flex max-w-3xl flex-col gap-2 text-xs text-white sm:flex-row sm:items-center sm:justify-between">
           <span>© {new Date().getFullYear()} Sentra Property · Jember</span>
           <a
-            href={BUSINESS_CONFIG.whatsapp.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-bold text-[#142544]"
+            href="https://sentraproperty.com"
+            className="font-bold text-white"
           >
-            WhatsApp {BUSINESS_CONFIG.whatsapp.display}
+            sentraproperty.com
           </a>
         </div>
       </footer>
