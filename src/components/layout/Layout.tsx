@@ -36,20 +36,20 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F7F3] text-[#142544] selection:bg-[#C9A34E]/30 selection:text-[#0B1730]">
+    <div className="min-h-screen flex flex-col bg-[#F8F7F3] text-[#142544] selection:bg-[#B49453]/30 selection:text-[#0B1730]">
       {/* Top Notice Bar */}
-      <div className="bg-[#0B1730] text-[#E0C477] text-[11px] font-medium tracking-wide py-1.5 px-4 border-b border-[#22375C]">
+      <div className="bg-[#0B1730] text-[#D8C596] text-[11px] font-medium tracking-wide py-1.5 px-4 border-b border-[#22375C]">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#C9A34E] animate-pulse" />
+            <span className="inline-block w-2 h-2 rounded-full bg-[#B49453] animate-pulse" />
             <span>{BUSINESS_CONFIG.name} — Layanan Jual, Beli, & Sewa Properti Terpercaya</span>
           </div>
           <div className="hidden md:flex items-center gap-4 text-[#F8F7F3]/80">
             <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-[#C9A34E]" /> Jember
+              <MapPin className="w-3 h-3 text-[#B49453]" /> Jember
             </span>
             <span className="flex items-center gap-1">
-              <Phone className="w-3 h-3 text-[#C9A34E]" /> {BUSINESS_CONFIG.whatsapp.display}
+              <Phone className="w-3 h-3 text-[#B49453]" /> {BUSINESS_CONFIG.whatsapp.display}
             </span>
           </div>
         </div>
@@ -69,13 +69,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`relative py-1 transition-colors duration-200 hover:text-[#C9A34E] ${
-                    active ? 'text-[#C9A34E]' : 'text-[#142544]'
+                  className={`relative py-1 transition-colors duration-200 hover:text-[#B49453] ${
+                    active ? 'text-[#B49453]' : 'text-[#142544]'
                   }`}
                 >
                   {link.label}
                   {active && (
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#C9A34E] rounded-full" />
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#B49453] rounded-full" />
                   )}
                 </Link>
               );
@@ -83,7 +83,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             <button
               onClick={() => setShowSellModal(true)}
-              className="py-1 transition-colors duration-200 hover:text-[#C9A34E] text-[#142544] font-semibold text-sm"
+              className="py-1 transition-colors duration-200 hover:text-[#B49453] text-[#142544] font-semibold text-sm"
             >
               Jual / Sewakan
             </button>
@@ -95,7 +95,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#142544] hover:bg-[#0B1730] text-white text-xs font-bold tracking-wide border border-[#142544] hover:border-[#C9A34E] transition shadow-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#142544] hover:bg-[#0B1730] text-white text-xs font-bold tracking-wide border border-[#142544] hover:border-[#B49453] transition shadow-sm"
             >
               <span>Masuk Portal</span>
             </Link>
@@ -125,7 +125,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`p-2.5 rounded-lg transition ${
                     isActive(link.path)
-                      ? 'bg-[#142544] text-[#E0C477]'
+                      ? 'bg-[#142544] text-[#D8C596]'
                       : 'hover:bg-[#F8F7F3] text-[#142544]'
                   }`}
                 >
@@ -173,7 +173,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-[#142544] text-[#C9A34E] flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-xl bg-[#142544] text-[#B49453] flex items-center justify-center font-bold">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
@@ -206,7 +206,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 href={BUSINESS_CONFIG.whatsapp.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-3 px-4 rounded-xl bg-[#C9A34E] hover:bg-[#E0C477] text-[#0B1730] font-bold text-xs text-center flex items-center justify-center gap-2 shadow-md transition"
+                className="flex-1 py-3 px-4 rounded-xl bg-[#B49453] hover:bg-[#D8C596] text-[#0B1730] font-bold text-xs text-center flex items-center justify-center gap-2 shadow-md transition"
               >
                 <MessageCircle className="w-4 h-4" />
                 <span>Chat WhatsApp Agen</span>
@@ -223,7 +223,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       )}
 
       {/* Footer */}
-      <footer className="bg-[#0B1730] text-[#F8F7F3] border-t-2 border-[#C9A34E] pt-14 pb-8">
+      <footer className="bg-[#0B1730] text-[#F8F7F3] border-t-2 border-[#B49453] pt-14 pb-8">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-[#22375C]">
             {/* Col 1: Brand & About */}
@@ -232,41 +232,41 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <p className="text-xs text-[#E8E5DD]/75 leading-relaxed">
                 {BUSINESS_CONFIG.name} adalah agensi properti terpercaya di Jember, Jawa Timur. Melayani jual, beli, dan sewa rumah, ruko, tanah kavling, serta properti komersial dengan legalitas aman dan transparan.
               </p>
-              <div className="pt-2 flex items-center gap-2 text-xs text-[#C9A34E]">
-                <ShieldCheck className="w-4 h-4 text-[#C9A34E]" />
+              <div className="pt-2 flex items-center gap-2 text-xs text-[#B49453]">
+                <ShieldCheck className="w-4 h-4 text-[#B49453]" />
                 <span className="font-semibold">Legalitas & Sertifikasi Terverifikasi</span>
               </div>
             </div>
 
             {/* Col 2: Navigasi Cepat */}
             <div>
-              <h4 className="text-sm font-bold tracking-wider uppercase text-[#E0C477] mb-4 pb-1 border-b border-[#22375C] inline-block">
+              <h4 className="text-sm font-bold tracking-wider uppercase text-[#D8C596] mb-4 pb-1 border-b border-[#22375C] inline-block">
                 Navigasi Cepat
               </h4>
               <ul className="space-y-2.5 text-xs text-[#E8E5DD]/80">
                 <li>
-                  <Link to="/" className="hover:text-[#C9A34E] transition flex items-center gap-1.5">
-                    <ChevronRight className="w-3 h-3 text-[#C9A34E]" /> Beranda
+                  <Link to="/" className="hover:text-[#B49453] transition flex items-center gap-1.5">
+                    <ChevronRight className="w-3 h-3 text-[#B49453]" /> Beranda
                   </Link>
                 </li>
                 <li>
-                  <Link to="/katalog?listingType=jual" className="hover:text-[#C9A34E] transition flex items-center gap-1.5">
-                    <ChevronRight className="w-3 h-3 text-[#C9A34E]" /> Properti Dijual
+                  <Link to="/katalog?listingType=jual" className="hover:text-[#B49453] transition flex items-center gap-1.5">
+                    <ChevronRight className="w-3 h-3 text-[#B49453]" /> Properti Dijual
                   </Link>
                 </li>
                 <li>
-                  <Link to="/katalog?listingType=sewa" className="hover:text-[#C9A34E] transition flex items-center gap-1.5">
-                    <ChevronRight className="w-3 h-3 text-[#C9A34E]" /> Properti Disewakan
+                  <Link to="/katalog?listingType=sewa" className="hover:text-[#B49453] transition flex items-center gap-1.5">
+                    <ChevronRight className="w-3 h-3 text-[#B49453]" /> Properti Disewakan
                   </Link>
                 </li>
                 <li>
-                  <button onClick={() => setShowSellModal(true)} className="hover:text-[#C9A34E] transition flex items-center gap-1.5 text-left">
-                    <ChevronRight className="w-3 h-3 text-[#C9A34E]" /> Titip Jual / Sewa
+                  <button onClick={() => setShowSellModal(true)} className="hover:text-[#B49453] transition flex items-center gap-1.5 text-left">
+                    <ChevronRight className="w-3 h-3 text-[#B49453]" /> Titip Jual / Sewa
                   </button>
                 </li>
                 <li>
-                  <Link to="/dashboard" className="hover:text-[#C9A34E] transition flex items-center gap-1.5">
-                    <ChevronRight className="w-3 h-3 text-[#C9A34E]" /> Portal Agen & Admin
+                  <Link to="/dashboard" className="hover:text-[#B49453] transition flex items-center gap-1.5">
+                    <ChevronRight className="w-3 h-3 text-[#B49453]" /> Portal Agen & Admin
                   </Link>
                 </li>
               </ul>
@@ -274,48 +274,48 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* Col 3: Wilayah Layanan Jember */}
             <div>
-              <h4 className="text-sm font-bold tracking-wider uppercase text-[#E0C477] mb-4 pb-1 border-b border-[#22375C] inline-block">
+              <h4 className="text-sm font-bold tracking-wider uppercase text-[#D8C596] mb-4 pb-1 border-b border-[#22375C] inline-block">
                 Wilayah Layanan
               </h4>
               <ul className="space-y-2 text-xs text-[#E8E5DD]/80">
                 <li className="flex items-center gap-1.5">
-                  <MapPin className="w-3 h-3 text-[#C9A34E]" /> Kecamatan Kaliwates
+                  <MapPin className="w-3 h-3 text-[#B49453]" /> Kecamatan Kaliwates
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <MapPin className="w-3 h-3 text-[#C9A34E]" /> Kecamatan Sumbersari
+                  <MapPin className="w-3 h-3 text-[#B49453]" /> Kecamatan Sumbersari
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <MapPin className="w-3 h-3 text-[#C9A34E]" /> Kecamatan Patrang
+                  <MapPin className="w-3 h-3 text-[#B49453]" /> Kecamatan Patrang
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <MapPin className="w-3 h-3 text-[#C9A34E]" /> Kawasan Kampus & Mangli
+                  <MapPin className="w-3 h-3 text-[#B49453]" /> Kawasan Kampus & Mangli
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <MapPin className="w-3 h-3 text-[#C9A34E]" /> Sukorambi & Sekitarnya
+                  <MapPin className="w-3 h-3 text-[#B49453]" /> Sukorambi & Sekitarnya
                 </li>
               </ul>
             </div>
 
             {/* Col 4: Kontak & Kantor */}
             <div>
-              <h4 className="text-sm font-bold tracking-wider uppercase text-[#E0C477] mb-4 pb-1 border-b border-[#22375C] inline-block">
+              <h4 className="text-sm font-bold tracking-wider uppercase text-[#D8C596] mb-4 pb-1 border-b border-[#22375C] inline-block">
                 Kantor Pemasaran
               </h4>
               <ul className="space-y-3 text-xs text-[#E8E5DD]/80">
                 <li className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-[#C9A34E] flex-shrink-0 mt-0.5" />
+                  <MapPin className="w-4 h-4 text-[#B49453] flex-shrink-0 mt-0.5" />
                   <span>{BUSINESS_CONFIG.address}</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-[#C9A34E] flex-shrink-0" />
+                  <Phone className="w-4 h-4 text-[#B49453] flex-shrink-0" />
                   <span>{BUSINESS_CONFIG.whatsapp.display} (Customer Care)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-[#C9A34E] flex-shrink-0" />
+                  <Mail className="w-4 h-4 text-[#B49453] flex-shrink-0" />
                   <span>info@{BUSINESS_CONFIG.domain}</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#C9A34E] flex-shrink-0" />
+                  <Clock className="w-4 h-4 text-[#B49453] flex-shrink-0" />
                   <span>Senin - Sabtu: 08.00 - 17.00 WIB</span>
                 </li>
               </ul>
@@ -327,7 +327,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <p>
               &copy; {new Date().getFullYear()} <strong>{BUSINESS_CONFIG.name}</strong>. Hak Cipta Dilindungi Undang-Undang.
             </p>
-            <p className="text-[11px] text-[#C9A34E]">
+            <p className="text-[11px] text-[#B49453]">
               Data properti yang ditampilkan bersifat demonstrasi resmi. Domain utama: {BUSINESS_CONFIG.domain}
             </p>
           </div>

@@ -127,8 +127,8 @@ export const ListingApprovalPage: React.FC = () => {
         {/* Counter Card */}
         <div className="bg-white p-4 rounded-2xl border border-[#E8E5DD] shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#C9A34E]/20 text-[#142544] flex items-center justify-center font-bold">
-              <Clock className="w-5 h-5 text-[#C9A34E]" />
+            <div className="w-10 h-10 rounded-xl bg-[#B49453]/20 text-[#142544] flex items-center justify-center font-bold">
+              <Clock className="w-5 h-5 text-[#B49453]" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-[#142544]">
@@ -160,7 +160,7 @@ export const ListingApprovalPage: React.FC = () => {
               return (
                 <div
                   key={prop.id}
-                  className="bg-white p-5 rounded-2xl border border-[#E8E5DD] shadow-xs hover:border-[#C9A34E] transition flex flex-col md:flex-row gap-5"
+                  className="bg-white p-5 rounded-2xl border border-[#E8E5DD] shadow-xs hover:border-[#B49453] transition flex flex-col md:flex-row gap-5"
                 >
                   {/* Photo */}
                   <div className="w-full md:w-64 aspect-16/10 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 relative">
@@ -175,7 +175,7 @@ export const ListingApprovalPage: React.FC = () => {
                         Foto belum tersedia
                       </div>
                     )}
-                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#C9A34E] text-[#142544] text-[9px] font-extrabold uppercase">
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#B49453] text-[#142544] text-[9px] font-extrabold uppercase">
                       Pending Review
                     </div>
                   </div>
@@ -184,7 +184,7 @@ export const ListingApprovalPage: React.FC = () => {
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between text-[10px] text-[#6B7280] mb-1">
-                        <span className="font-bold uppercase text-[#C9A34E]">
+                        <span className="font-bold uppercase text-[#B49453]">
                           {prop.property_type} • {prop.listing_type}
                         </span>
                         <span>Diajukan: {new Date(prop.updated_at).toLocaleString('id-ID')}</span>
@@ -194,7 +194,7 @@ export const ListingApprovalPage: React.FC = () => {
                         {prop.title}
                       </h3>
 
-                      <p className="text-sm font-extrabold text-[#C9A34E] mb-2">
+                      <p className="text-sm font-extrabold text-[#B49453] mb-2">
                         Rp {prop.price.toLocaleString('id-ID')} {prop.listing_type === 'sewa' ? '/tahun' : ''}
                       </p>
 
@@ -246,7 +246,7 @@ export const ListingApprovalPage: React.FC = () => {
                         onClick={() => void handleApprove(prop)}
                         className="px-5 py-2 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
                       >
-                        <Check className="w-4 h-4 text-[#C9A34E]" />
+                        <Check className="w-4 h-4 text-[#B49453]" />
                         <span>Setujui & Terbitkan ke Publik</span>
                       </button>
                     </div>
@@ -288,7 +288,7 @@ export const ListingApprovalPage: React.FC = () => {
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="Jelaskan alasan penolakan dan bagian yang perlu diperbaiki agen..."
-                className="w-full p-2.5 border border-[#E8E5DD] rounded-xl text-xs text-[#142544] focus:outline-none focus:ring-1 focus:ring-[#C9A34E]"
+                className="w-full p-2.5 border border-[#E8E5DD] rounded-xl text-xs text-[#142544] focus:outline-none focus:ring-1 focus:ring-[#B49453]"
               />
             </div>
 

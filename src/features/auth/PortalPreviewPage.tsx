@@ -19,7 +19,7 @@ export const PortalPreviewPage: React.FC = () => {
       <div className="bg-[#F8F7F3] min-h-[80vh] py-12">
         <div className="container mx-auto px-4 sm:px-6 max-w-4xl">
           <div className="text-center mb-10">
-            <span className="text-xs font-bold text-[#C9A34E] uppercase tracking-widest block mb-2">
+            <span className="text-xs font-bold text-[#B49453] uppercase tracking-widest block mb-2">
               Sentra Property Internal
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-[#142544] tracking-tight">
@@ -34,9 +34,9 @@ export const PortalPreviewPage: React.FC = () => {
             {PROFILES.map((profile) => (
               <div
                 key={profile.id}
-                className="bg-white p-6 rounded-2xl border border-[#E8E5DD] shadow-sm hover:border-[#C9A34E] hover:shadow-md transition text-[#142544]"
+                className="bg-white p-6 rounded-2xl border border-[#E8E5DD] shadow-sm hover:border-[#B49453] hover:shadow-md transition text-[#142544]"
               >
-                <div className="w-12 h-12 rounded-xl bg-[#142544] text-[#C9A34E] flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-xl bg-[#142544] text-[#B49453] flex items-center justify-center mb-4">
                   {profile.role === 'super_admin' ? (
                     <ShieldCheck className="w-6 h-6" />
                   ) : profile.role === 'internal_agent' ? (
@@ -46,7 +46,7 @@ export const PortalPreviewPage: React.FC = () => {
                   )}
                 </div>
 
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#F8F7F3] text-[#C9A34E] border border-[#E8E5DD] inline-block mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#F8F7F3] text-[#B49453] border border-[#E8E5DD] inline-block mb-2">
                   {profile.role.replace('_', ' ')}
                 </span>
                 <h3 className="font-bold text-base text-[#142544] mb-1">{profile.full_name}</h3>
@@ -54,7 +54,7 @@ export const PortalPreviewPage: React.FC = () => {
 
                 <div className="pt-4 border-t border-[#E8E5DD] text-xs text-[#6B7280] space-y-1">
                   <div className="flex items-center gap-1.5 text-[#142544]">
-                    <KeyRound className="w-3.5 h-3.5 text-[#C9A34E]" />
+                    <KeyRound className="w-3.5 h-3.5 text-[#B49453]" />
                     <span className="font-mono text-[11px]">ID: {profile.id}</span>
                   </div>
                   <span className="text-[11px] block text-[#6B7280]">Mode Simulasi Lokal</span>
@@ -64,9 +64,9 @@ export const PortalPreviewPage: React.FC = () => {
           </div>
 
           {/* Status Banner */}
-          <div className="p-6 rounded-2xl bg-white border border-[#C9A34E] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-6 rounded-2xl bg-white border border-[#B49453] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <Info className="w-5 h-5 text-[#C9A34E] flex-shrink-0 mt-0.5" />
+              <Info className="w-5 h-5 text-[#B49453] flex-shrink-0 mt-0.5" />
               <div className="text-xs text-[#6B7280]">
                 <strong className="text-[#142544] block mb-0.5">Fase Redesain Website Publik Selesai</strong>
                 Tahap saat ini berfokus pada kesempurnaan website publik, kartu properti, dan visual identitas Navy-Gold. Dashboard internal agen & persetujuan listing siap dihubungkan pada tahap arsitektur berikutnya.
@@ -78,7 +78,7 @@ export const PortalPreviewPage: React.FC = () => {
               className="px-5 py-2.5 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white font-bold text-xs whitespace-nowrap flex items-center gap-2 transition"
             >
               <span>Jelajahi Katalog Publik</span>
-              <ArrowRight className="w-4 h-4 text-[#C9A34E]" />
+              <ArrowRight className="w-4 h-4 text-[#B49453]" />
             </Link>
           </div>
         </div>

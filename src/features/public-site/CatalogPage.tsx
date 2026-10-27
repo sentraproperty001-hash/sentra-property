@@ -143,7 +143,7 @@ export const CatalogPage: React.FC = () => {
           {/* Header Banner */}
           <div className="mb-8 pb-6 border-b border-[#E8E5DD] flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <span className="text-xs font-bold text-[#C9A34E] uppercase tracking-widest block mb-1">
+              <span className="text-xs font-bold text-[#B49453] uppercase tracking-widest block mb-1">
                 Katalog Properti Sentra Property
               </span>
               <h1 className="text-2xl sm:text-4xl font-extrabold text-[#142544] tracking-tight">
@@ -165,13 +165,13 @@ export const CatalogPage: React.FC = () => {
                 onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}
                 className="lg:hidden inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-[#E8E5DD] text-xs font-bold text-[#142544] shadow-sm"
               >
-                <SlidersHorizontal className="w-4 h-4 text-[#C9A34E]" />
+                <SlidersHorizontal className="w-4 h-4 text-[#B49453]" />
                 <span>Filter ({listingType !== 'semua' || propertyType !== 'semua' || priceRange !== 'semua' || minPrice !== undefined || maxPrice !== undefined || query ? 'Aktif' : '0'})</span>
               </button>
 
               {/* Sort Dropdown */}
               <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-[#E8E5DD] shadow-sm text-xs text-[#142544]">
-                <ArrowUpDown className="w-3.5 h-3.5 text-[#C9A34E]" />
+                <ArrowUpDown className="w-3.5 h-3.5 text-[#B49453]" />
                 <span className="text-[#6B7280] hidden sm:inline">Urutkan:</span>
                 <select
                   value={sort}
@@ -196,13 +196,13 @@ export const CatalogPage: React.FC = () => {
             >
               <div className="flex items-center justify-between pb-3 border-b border-[#E8E5DD]">
                 <h2 className="text-sm font-extrabold uppercase tracking-wider text-[#142544] flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-[#C9A34E]" />
+                  <Filter className="w-4 h-4 text-[#B49453]" />
                   <span>Filter Properti</span>
                 </h2>
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="text-[11px] font-semibold text-[#6B7280] hover:text-[#C9A34E] flex items-center gap-1 transition"
+                  className="text-[11px] font-semibold text-[#6B7280] hover:text-[#B49453] flex items-center gap-1 transition"
                   title="Reset semua filter"
                 >
                   <RotateCcw className="w-3 h-3" />
@@ -219,7 +219,7 @@ export const CatalogPage: React.FC = () => {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Contoh: Kaliwates, Patrang..."
-                    className="w-full h-10 pl-9 pr-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A34E] focus:border-transparent text-[#142544]"
+                    className="w-full h-10 pl-9 pr-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B49453] focus:border-transparent text-[#142544]"
                   />
                   <Search className="w-4 h-4 text-[#6B7280] absolute left-3 top-3" />
                 </div>
@@ -271,7 +271,7 @@ export const CatalogPage: React.FC = () => {
                 <select
                   value={propertyType}
                   onChange={(e) => setPropertyType(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A34E] text-[#142544]"
+                  className="w-full h-10 px-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B49453] text-[#142544]"
                 >
                   <option value="semua">Semua Tipe Properti</option>
                   <option value="rumah">Rumah Tinggal</option>
@@ -291,7 +291,7 @@ export const CatalogPage: React.FC = () => {
                     setMinPrice(undefined);
                     setMaxPrice(undefined);
                   }}
-                  className="w-full h-10 px-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A34E] text-[#142544]"
+                  className="w-full h-10 px-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B49453] text-[#142544]"
                 >
                   <option value="semua">Semua Rentang Harga</option>
                   <option value="under-500m">&lt; Rp 500 Juta</option>
@@ -311,8 +311,8 @@ export const CatalogPage: React.FC = () => {
                       onClick={() => setBedrooms(num)}
                       className={`flex-1 py-1.5 rounded-lg text-xs font-bold border transition ${
                         bedrooms === num
-                          ? 'bg-[#142544] text-[#E0C477] border-[#142544]'
-                          : 'bg-[#F8F7F3] text-[#142544] border-[#E8E5DD] hover:border-[#C9A34E]'
+                          ? 'bg-[#142544] text-[#D8C596] border-[#142544]'
+                          : 'bg-[#F8F7F3] text-[#142544] border-[#E8E5DD] hover:border-[#B49453]'
                       }`}
                     >
                       {num === 0 ? 'Semua' : `${num}+`}
@@ -325,7 +325,7 @@ export const CatalogPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleReset}
-                className="w-full py-2.5 rounded-xl border border-[#C9A34E] text-[#C9A34E] hover:bg-[#C9A34E] hover:text-[#0B1730] font-bold text-xs tracking-wide transition shadow-xs"
+                className="w-full py-2.5 rounded-xl border border-[#B49453] text-[#B49453] hover:bg-[#B49453] hover:text-[#0B1730] font-bold text-xs tracking-wide transition shadow-xs"
               >
                 Reset Semua Filter
               </button>
@@ -344,7 +344,7 @@ export const CatalogPage: React.FC = () => {
               ) : properties.length === 0 ? (
                 /* Empty state */
                 <div className="p-12 text-center bg-white rounded-2xl border border-[#E8E5DD] shadow-sm max-w-lg mx-auto">
-                  <div className="w-16 h-16 rounded-full bg-[#142544]/5 text-[#C9A34E] flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 rounded-full bg-[#142544]/5 text-[#B49453] flex items-center justify-center mx-auto mb-4">
                     <Building className="w-8 h-8 opacity-75" />
                   </div>
                   <h3 className="text-lg font-bold text-[#142544] mb-2">
@@ -355,7 +355,7 @@ export const CatalogPage: React.FC = () => {
                   </p>
                   <button
                     onClick={handleReset}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#C9A34E] hover:bg-[#E0C477] text-[#0B1730] font-bold text-xs uppercase tracking-wider transition shadow-sm"
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#B49453] hover:bg-[#D8C596] text-[#0B1730] font-bold text-xs uppercase tracking-wider transition shadow-sm"
                   >
                     <RotateCcw className="w-4 h-4" />
                     <span>Reset Kriteria Pencarian</span>

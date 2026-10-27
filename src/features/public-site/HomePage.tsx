@@ -152,7 +152,7 @@ export const HomePage: React.FC = () => {
         </div>
       )}
       {/* 1. HERO SECTION WITH UPLOADED BANNER BACKGROUND & PRESTIGIOUS LOGO PLACEMENT */}
-      <section className="relative bg-[#0B1730] text-white overflow-hidden py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b-4 border-[#C9A34E]">
+      <section className="relative bg-[#0B1730] text-white overflow-hidden py-14 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-b-4 border-[#B49453]">
         {/* Background Image: Authentic Website Banner Image with Pool & Luxury Villa */}
         <div className="absolute inset-0 z-0">
           <img
@@ -171,7 +171,7 @@ export const HomePage: React.FC = () => {
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-light tracking-tighter leading-tight mb-6">
             <span className="text-white">Temukan Properti yang Tepat untuk{' '}</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C9A34E] via-[#E0C477] to-[#C9A34E]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#B49453] via-[#D8C596] to-[#B49453]">
               Masa Depan Anda
             </span>
           </h1>
@@ -182,7 +182,7 @@ export const HomePage: React.FC = () => {
           </p>
 
           {/* SEARCH FORM (Visible, Structured, and Well-Bordered) */}
-          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-[0_25px_60px_rgba(11,23,48,0.55)] border-2 border-[#C9A34E] text-[#142544] text-left max-w-4xl mx-auto backdrop-blur-md">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-[0_25px_60px_rgba(11,23,48,0.55)] border-2 border-[#B49453] text-[#142544] text-left max-w-4xl mx-auto backdrop-blur-md">
             {/* Transaction Type Tabs */}
             <div className="flex items-center gap-2 mb-4 border-b border-[#E8E5DD] pb-3">
               <button
@@ -225,26 +225,26 @@ export const HomePage: React.FC = () => {
               {/* Keyword / Location */}
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-[#142544] uppercase tracking-wider flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#C9A34E]" /> Lokasi / Kata Kunci
+                  <MapPin className="w-3.5 h-3.5 text-[#B49453]" /> Lokasi / Kata Kunci
                 </label>
                 <input
                   type="text"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   placeholder="Contoh: Kaliwates, Patrang..."
-                  className="w-full h-11 px-3 text-xs bg-[#F8F7F3] text-[#142544] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A34E] focus:border-transparent transition"
+                  className="w-full h-11 px-3 text-xs bg-[#F8F7F3] text-[#142544] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B49453] focus:border-transparent transition"
                 />
               </div>
 
               {/* Property Type */}
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-[#142544] uppercase tracking-wider flex items-center gap-1">
-                  <Home className="w-3.5 h-3.5 text-[#C9A34E]" /> Tipe Properti
+                  <Home className="w-3.5 h-3.5 text-[#B49453]" /> Tipe Properti
                 </label>
                 <select
                   value={propertyType}
                   onChange={(e) => setPropertyType(e.target.value)}
-                  className="w-full h-11 px-3 text-xs bg-[#F8F7F3] text-[#142544] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A34E] focus:border-transparent transition"
+                  className="w-full h-11 px-3 text-xs bg-[#F8F7F3] text-[#142544] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B49453] focus:border-transparent transition"
                 >
                   <option value="semua">Semua Tipe</option>
                   <option value="rumah">Rumah Tinggal</option>
@@ -257,12 +257,12 @@ export const HomePage: React.FC = () => {
               {/* Price Range */}
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-[#142544] uppercase tracking-wider flex items-center gap-1">
-                  <Tag className="w-3.5 h-3.5 text-[#C9A34E]" /> Rentang Harga
+                  <Tag className="w-3.5 h-3.5 text-[#B49453]" /> Rentang Harga
                 </label>
                 <select
                   value={priceRange}
                   onChange={(e) => setPriceRange(e.target.value)}
-                  className="w-full h-11 px-3 text-xs bg-[#F8F7F3] text-[#142544] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A34E] focus:border-transparent transition"
+                  className="w-full h-11 px-3 text-xs bg-[#F8F7F3] text-[#142544] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B49453] focus:border-transparent transition"
                 >
                   <option value="semua">Semua Rentang Harga</option>
                   <option value="under-500m">&lt; Rp 500 Juta</option>
@@ -275,7 +275,7 @@ export const HomePage: React.FC = () => {
               <div className="flex items-end">
                 <button
                   type="submit"
-                  className="w-full h-11 px-6 rounded-xl bg-[#C9A34E] hover:bg-[#E0C477] text-[#0B1730] font-extrabold text-xs tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                  className="w-full h-11 px-6 rounded-xl bg-[#B49453] hover:bg-[#D8C596] text-[#0B1730] font-extrabold text-xs tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5"
                 >
                   <Search className="w-4 h-4 text-[#0B1730]" />
                   <span>Cari Properti</span>
@@ -287,8 +287,8 @@ export const HomePage: React.FC = () => {
           {/* Quick Stats Cards under Hero */}
           <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center max-w-4xl mx-auto">
             {publicStats.map((stat) => (
-              <div key={stat.label} className="p-3.5 rounded-xl bg-[#0B1730]/85 border border-[#C9A34E]/30 backdrop-blur-md shadow-sm">
-                <span className="text-xl sm:text-2xl font-black text-[#E0C477] block">
+              <div key={stat.label} className="p-3.5 rounded-xl bg-[#0B1730]/85 border border-[#B49453]/30 backdrop-blur-md shadow-sm">
+                <span className="text-xl sm:text-2xl font-black text-[#D8C596] block">
                   {isLoadingProperties ? '…' : propertiesError ? '—' : stat.value}
                 </span>
                 <p className="text-[11px] text-[#E8E5DD] font-medium mt-0.5">{stat.label}</p>
@@ -303,7 +303,7 @@ export const HomePage: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
             <div>
-              <span className="text-xs font-bold text-[#C9A34E] uppercase tracking-widest block mb-1">
+              <span className="text-xs font-bold text-[#B49453] uppercase tracking-widest block mb-1">
                 Katalog Pilihan
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#142544] tracking-tight">
@@ -312,10 +312,10 @@ export const HomePage: React.FC = () => {
             </div>
             <Link
               to="/katalog"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#142544] hover:text-[#C9A34E] transition"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#142544] hover:text-[#B49453] transition"
             >
               <span>Lihat Semua Properti</span>
-              <ArrowRight className="w-4 h-4 text-[#C9A34E]" />
+              <ArrowRight className="w-4 h-4 text-[#B49453]" />
             </Link>
           </div>
 
@@ -326,13 +326,13 @@ export const HomePage: React.FC = () => {
                 <Link
                   key={cat.type}
                   to={`/katalog?propertyType=${cat.type}`}
-                  className="group p-5 rounded-2xl bg-[#F8F7F3] border border-[#E8E5DD] hover:border-[#C9A34E] hover:shadow-lg transition-all duration-300 flex items-start gap-4"
+                  className="group p-5 rounded-2xl bg-[#F8F7F3] border border-[#E8E5DD] hover:border-[#B49453] hover:shadow-lg transition-all duration-300 flex items-start gap-4"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-[#142544] text-[#C9A34E] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-sm">
+                  <div className="w-12 h-12 rounded-xl bg-[#142544] text-[#B49453] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-sm">
                     <IconComp className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-[#142544] group-hover:text-[#C9A34E] transition-colors">
+                    <h3 className="font-bold text-sm text-[#142544] group-hover:text-[#B49453] transition-colors">
                       {cat.title}
                     </h3>
                     <p className="text-xs text-[#6B7280] mt-0.5 line-clamp-1">{cat.desc}</p>
@@ -352,7 +352,7 @@ export const HomePage: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 gap-4">
             <div>
-              <span className="text-xs font-bold text-[#C9A34E] uppercase tracking-widest block mb-1">
+              <span className="text-xs font-bold text-[#B49453] uppercase tracking-widest block mb-1">
                 Rekomendasi Spesial
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#142544] tracking-tight">
@@ -364,10 +364,10 @@ export const HomePage: React.FC = () => {
             </div>
             <Link
               to="/katalog"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#142544] text-white text-xs font-bold hover:bg-[#0B1730] hover:border-[#C9A34E] border border-[#142544] transition shadow-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#142544] text-white text-xs font-bold hover:bg-[#0B1730] hover:border-[#B49453] border border-[#142544] transition shadow-sm"
             >
               <span>Jelajahi Katalog Lengkap</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#C9A34E]" />
+              <ArrowRight className="w-3.5 h-3.5 text-[#B49453]" />
             </Link>
           </div>
 
@@ -383,7 +383,7 @@ export const HomePage: React.FC = () => {
       <section className="py-16 bg-white border-y border-[#E8E5DD]">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-bold text-[#C9A34E] uppercase tracking-widest block mb-2">
+            <span className="text-xs font-bold text-[#B49453] uppercase tracking-widest block mb-2">
               Mengapa Sentra Property?
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#142544] tracking-tight">
@@ -400,9 +400,9 @@ export const HomePage: React.FC = () => {
               return (
                 <div
                   key={idx}
-                  className="p-6 rounded-2xl bg-[#F8F7F3] border border-[#E8E5DD] hover:border-[#C9A34E] hover:shadow-md transition-all duration-200"
+                  className="p-6 rounded-2xl bg-[#F8F7F3] border border-[#E8E5DD] hover:border-[#B49453] hover:shadow-md transition-all duration-200"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-[#142544] text-[#C9A34E] flex items-center justify-center mb-4 shadow-sm">
+                  <div className="w-12 h-12 rounded-xl bg-[#142544] text-[#B49453] flex items-center justify-center mb-4 shadow-sm">
                     <IconComp className="w-6 h-6" />
                   </div>
                   <h3 className="font-bold text-sm text-[#142544] mb-2">{adv.title}</h3>
@@ -419,7 +419,7 @@ export const HomePage: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 gap-4">
             <div>
-              <span className="text-xs font-bold text-[#C9A34E] uppercase tracking-widest block mb-1">
+              <span className="text-xs font-bold text-[#B49453] uppercase tracking-widest block mb-1">
                 Listing Terkini
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#142544] tracking-tight">
@@ -428,10 +428,10 @@ export const HomePage: React.FC = () => {
             </div>
             <Link
               to="/katalog?sort=newest"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#142544] hover:text-[#C9A34E] transition"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#142544] hover:text-[#B49453] transition"
             >
               <span>Lihat Urutan Terbaru</span>
-              <ArrowRight className="w-4 h-4 text-[#C9A34E]" />
+              <ArrowRight className="w-4 h-4 text-[#B49453]" />
             </Link>
           </div>
 
@@ -446,10 +446,10 @@ export const HomePage: React.FC = () => {
       {/* 6. CALL TO ACTION FOR OWNERS */}
       <section className="py-16 bg-[#142544] text-white relative overflow-hidden">
         {/* Subtle decorative gold line pattern */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#C9A34E] to-transparent opacity-80" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#B49453] to-transparent opacity-80" />
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-6">
-            <span className="inline-block px-3 py-1 rounded-full bg-[#0B1730] text-[#E0C477] border border-[#C9A34E]/40 text-xs font-bold uppercase tracking-wider">
+            <span className="inline-block px-3 py-1 rounded-full bg-[#0B1730] text-[#D8C596] border border-[#B49453]/40 text-xs font-bold uppercase tracking-wider">
               Layanan Pemilik Properti
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
@@ -463,7 +463,7 @@ export const HomePage: React.FC = () => {
                 href={`${BUSINESS_CONFIG.whatsapp.link}?text=Halo%20${BUSINESS_CONFIG.name},%20saya%20ingin%20menjual/menyewakan%20properti%20saya%20di%20Jember.`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#C9A34E] hover:bg-[#E0C477] text-[#0B1730] font-extrabold text-xs tracking-wider uppercase transition shadow-lg hover:shadow-xl"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#B49453] hover:bg-[#D8C596] text-[#0B1730] font-extrabold text-xs tracking-wider uppercase transition shadow-lg hover:shadow-xl"
               >
                 Konsultasi Titip Properti Gratis
               </a>

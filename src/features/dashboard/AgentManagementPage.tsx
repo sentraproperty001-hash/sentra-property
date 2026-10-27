@@ -1,95 +1,171 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { DashboardLayout } from './DashboardLayout';
 import { useAuth } from '../auth/AuthContext';
 import { userRepository } from '@/src/repositories/userRepository';
-import { propertyRepository } from '@/src/repositories/propertyRepository';
+import { userManagement, ManagedUser } from '@/src/lib/userManagement';
+import { isValidUsername, normalizeUsername, usernameToAuthEmail } from '@/src/lib/usernameAuth';
 import { Profile, Role } from '@/src/types';
-import {
-  UserCheck,
-  ShieldCheck,
-  Building,
-  Plus,
-  Phone,
-  Mail,
-  Calendar,
-  KeyRound,
-  CheckCircle2,
-  XCircle,
-  X,
-} from 'lucide-react';
+import { KeyRound, Plus, ShieldCheck, X } from 'lucide-react';
+
+const ROLES: Array<{ value: Role; label: string }> = [
+  { value: 'super_admin', label: 'Super Admin' },
+  { value: 'admin', label: 'Admin' },
+  { value: 'internal_agent', label: 'Agen Internal' },
+  { value: 'partner_agent', label: 'Agen Mitra' },
+];
+
+const roleLabel = (role: Role) => ROLES.find(option => option.value === role)?.label || role;
+
+const demoUserToManagedUser = (profile: Profile): ManagedUser => ({
+  id: profile.id,
+  username: profile.username || profile.email.split('@')[0],
+  full_name: profile.full_name,
+  phone: profile.phone,
+  role: profile.role,
+  created_at: profile.joined_at,
+});
 
 export const AgentManagementPage: React.FC = () => {
-  const { currentUser, isSuperAdmin } = useAuth();
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [listingCounts, setListingCounts] = useState<Record<string, number>>({});
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  // New Agent Form
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const { currentUser, isSuperAdmin, isDemoMode, refreshDemoProfiles } = useAuth();
+  const [users, setUsers] = useState<ManagedUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [resetTarget, setResetTarget] = useState<ManagedUser | null>(null);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState<Role>('internal_agent');
+  const [newPassword, setNewPassword] = useState('');
 
-  const loadData = () => {
-    const list = userRepository.findAll();
-    setProfiles(list);
-
-    const props = propertyRepository.findAll();
-    const counts: Record<string, number> = {};
-    props.forEach((p) => {
-      counts[p.owner_agent_id] = (counts[p.owner_agent_id] || 0) + 1;
-    });
-    setListingCounts(counts);
-  };
+  const loadUsers = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const loadedUsers = isDemoMode
+        ? userRepository.findAll().map(demoUserToManagedUser)
+        : await userManagement.list();
+      setUsers(loadedUsers);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Daftar user gagal dimuat.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isDemoMode]);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    void loadUsers();
+  }, [loadUsers]);
 
-  const handleToggleStatus = (id: string, name: string) => {
-    if (id === currentUser.id) {
-      alert('Anda tidak dapat menonaktifkan akun Anda sendiri.');
+  const handleCreateUser = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const normalizedUsername = normalizeUsername(username);
+    if (!isValidUsername(normalizedUsername)) {
+      setError('Username harus 3–32 karakter: huruf kecil, angka, titik, garis bawah, atau tanda hubung.');
       return;
     }
-    userRepository.toggleStatus(id);
-    loadData();
+    if (password.length < 12) {
+      setError('Password minimal 12 karakter.');
+      return;
+    }
+    if (!fullName.trim()) {
+      setError('Nama lengkap wajib diisi.');
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+    setNotice(null);
+    try {
+      if (isDemoMode) {
+        const duplicateUsername = users.some(user => user.username.toLowerCase() === normalizedUsername);
+        if (duplicateUsername) throw new Error('Username sudah digunakan.');
+        const created = userRepository.create({
+          username: normalizedUsername,
+          full_name: fullName.trim(),
+          email: usernameToAuthEmail(normalizedUsername),
+          phone: phone.trim(),
+          role,
+          status: 'active',
+        });
+        refreshDemoProfiles();
+        setUsers(current => [...current, demoUserToManagedUser(created)]);
+        setNotice('User demo dibuat. Password tidak disimpan dalam mode demo.');
+      } else {
+        await userManagement.create({
+          username: normalizedUsername,
+          password,
+          fullName: fullName.trim(),
+          phone: phone.trim(),
+          role,
+        });
+        await loadUsers();
+        setNotice('User berhasil dibuat. Berikan username dan password sementara kepada user dengan aman.');
+      }
+      setIsCreateOpen(false);
+      setUsername('');
+      setPassword('');
+      setFullName('');
+      setPhone('');
+      setRole('internal_agent');
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'User gagal dibuat.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleCreateAgent = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !email || !phone) {
-      alert('Semua bidang wajib diisi.');
+  const handleRoleChange = async (user: ManagedUser, nextRole: Role) => {
+    if (user.id === currentUser.id || user.role === nextRole) return;
+    setError(null);
+    setNotice(null);
+    try {
+      if (isDemoMode) {
+        userRepository.updateRole(user.id, nextRole);
+      } else {
+        await userManagement.updateRole(user.id, nextRole);
+      }
+      setUsers(current => current.map(item => item.id === user.id ? { ...item, role: nextRole } : item));
+      setNotice(`Role ${user.username} diubah menjadi ${roleLabel(nextRole)}.`);
+    } catch (roleError) {
+      setError(roleError instanceof Error ? roleError.message : 'Role user gagal diperbarui.');
+    }
+  };
+
+  const handleResetPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!resetTarget) return;
+    if (newPassword.length < 12) {
+      setError('Password minimal 12 karakter.');
       return;
     }
 
-    userRepository.create({
-      full_name: name,
-      email,
-      phone,
-      role,
-      status: 'active',
-    });
-
-    setIsAddModalOpen(false);
-    setName('');
-    setEmail('');
-    setPhone('');
-    setRole('internal_agent');
-    loadData();
+    setIsSaving(true);
+    setError(null);
+    try {
+      if (!isDemoMode) await userManagement.resetPassword(resetTarget.id, newPassword);
+      setResetTarget(null);
+      setNewPassword('');
+      setNotice(isDemoMode
+        ? 'Mode demo tidak menyimpan password.'
+        : `Password untuk ${resetTarget.username} berhasil diubah.`);
+    } catch (passwordError) {
+      setError(passwordError instanceof Error ? passwordError.message : 'Password user gagal diperbarui.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!isSuperAdmin) {
     return (
-      <DashboardLayout
-        title="Manajemen Tim & Agen"
-        subtitle="Akses Khusus: Hanya Super Administrator"
-      >
-        <div className="bg-white p-8 rounded-2xl border border-red-200 text-center max-w-lg mx-auto">
-          <ShieldCheck className="w-12 h-12 text-rose-500 mx-auto mb-3" />
+      <DashboardLayout title="Kelola User" subtitle="Akses khusus super admin">
+        <div className="mx-auto max-w-lg rounded-2xl border border-red-200 bg-white p-8 text-center">
+          <ShieldCheck className="mx-auto mb-3 h-12 w-12 text-rose-500" />
           <h3 className="font-bold text-base text-[#142544]">Hak Akses Dibatasi</h3>
-          <p className="text-xs text-[#6B7280] mt-1">
-            Hanya <strong>Super Admin</strong> yang memiliki hak kelola profil dan otorisasi tim agen. Gunakan menu ganti peran di pojok atas untuk beralih ke akun <strong>Budi Santoso (Super Admin)</strong>.
-          </p>
+          <p className="mt-1 text-xs text-[#6B7280]">Hanya super admin yang dapat membuat user atau mengubah role.</p>
         </div>
       </DashboardLayout>
     );
@@ -97,188 +173,159 @@ export const AgentManagementPage: React.FC = () => {
 
   return (
     <DashboardLayout
-      title="Manajemen Tim & Agen Resmi"
-      subtitle="Otorisasi staf internal dan mitra agen Sentra Property Jember"
-      actionButton={
+      title="Kelola User"
+      subtitle="Buat akun dengan username dan password, lalu atur role akses aplikasi."
+      actionButton={(
         <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white text-xs font-bold flex items-center gap-2 shadow-sm transition"
+          type="button"
+          onClick={() => {
+            setError(null);
+            setIsCreateOpen(true);
+          }}
+          className="flex items-center gap-2 rounded-xl bg-[#142544] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#0B1730]"
         >
-          <Plus className="w-4 h-4 text-[#C9A34E]" />
-          <span>Tambah Anggota Tim</span>
+          <Plus className="h-4 w-4 text-[#B49453]" />
+          <span>Tambah User</span>
         </button>
-      }
+      )}
     >
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {profiles.map((p) => {
-            const count = listingCounts[p.id] || 0;
-            const isMe = p.id === currentUser.id;
+      <div className="space-y-5">
+        {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">{error}</div>}
+        {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">{notice}</div>}
+        {isDemoMode && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+            Mode demo: perubahan user hanya tersimpan di browser ini. Gunakan Supabase yang sudah dikonfigurasi untuk membuat akun login sungguhan.
+          </div>
+        )}
 
-            return (
-              <div
-                key={p.id}
-                className={`bg-white rounded-2xl p-5 border shadow-xs transition flex flex-col justify-between ${
-                  p.status === 'active' ? 'border-[#E8E5DD] hover:border-[#C9A34E]' : 'border-red-200 bg-red-50/20'
-                }`}
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#142544] text-[#C9A34E] flex items-center justify-center flex-shrink-0">
-                        {p.role === 'super_admin' ? (
-                          <ShieldCheck className="w-5 h-5" />
-                        ) : p.role === 'admin' ? (
-                          <UserCheck className="w-5 h-5" />
-                        ) : (
-                          <Building className="w-5 h-5" />
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-[#142544]">
-                          {p.full_name} {isMe && <span className="text-[10px] text-[#C9A34E]">(Anda)</span>}
-                        </h4>
-                        <span className="inline-block px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-[#C9A34E]/15 text-[#142544]">
-                          {p.role.replace('_', ' ')}
-                        </span>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                        p.status === 'active'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-rose-100 text-rose-800'
-                      }`}
-                    >
-                      {p.status === 'active' ? 'Aktif' : 'Non-aktif'}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1.5 text-xs text-[#6B7280] mb-4">
-                    <p className="flex items-center gap-2">
-                      <Mail className="w-3.5 h-3.5 text-[#142544]" />
-                      <span className="truncate">{p.email}</span>
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-[#142544]" />
-                      <span>{p.phone}</span>
-                    </p>
-                    <p className="flex items-center gap-2 text-[11px]">
-                      <Calendar className="w-3.5 h-3.5 text-[#142544]" />
-                      <span>Bergabung: {new Date(p.joined_at).toLocaleDateString('id-ID')}</span>
-                    </p>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-[#F8F7F3] border border-[#E8E5DD] flex items-center justify-between text-xs">
-                    <span className="text-[#6B7280]">Total Portofolio Listing:</span>
-                    <strong className="text-[#142544] font-bold">{count} Properti</strong>
-                  </div>
-                </div>
-
-                <div className="pt-4 mt-4 border-t border-[#E8E5DD] flex items-center justify-between text-xs">
-                  <span className="font-mono text-[10px] text-gray-400">ID: {p.id}</span>
-                  {!isMe && (
-                    <button
-                      onClick={() => handleToggleStatus(p.id, p.full_name)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
-                        p.status === 'active'
-                          ? 'bg-rose-50 text-rose-700 hover:bg-rose-100'
-                          : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                      }`}
-                    >
-                      {p.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {isLoading ? (
+          <p role="status" className="rounded-xl border border-[#E8E5DD] bg-white p-8 text-center text-sm text-[#6B7280]">Memuat daftar user...</p>
+        ) : users.length === 0 ? (
+          <p className="rounded-xl border border-[#E8E5DD] bg-white p-8 text-center text-sm text-[#6B7280]">Belum ada user.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-2xl border border-[#E8E5DD] bg-white shadow-xs">
+            <table className="w-full min-w-[720px] text-left text-xs">
+              <thead className="bg-[#F8F7F3] text-[10px] uppercase tracking-wide text-[#6B7280]">
+                <tr>
+                  <th className="px-4 py-3">User</th>
+                  <th className="px-4 py-3">Nama</th>
+                  <th className="px-4 py-3">Telepon</th>
+                  <th className="px-4 py-3">Role</th>
+                  <th className="px-4 py-3">Dibuat</th>
+                  <th className="px-4 py-3">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E8E5DD]">
+                {users.map(user => {
+                  const isCurrentUser = user.id === currentUser.id;
+                  return (
+                    <tr key={user.id} className="text-[#142544]">
+                      <td className="px-4 py-3 font-semibold">
+                        @{user.username}
+                        {isCurrentUser && <span className="ml-1 text-[9px] text-[#80652F]">(Anda)</span>}
+                      </td>
+                      <td className="px-4 py-3">{user.full_name}</td>
+                      <td className="px-4 py-3">{user.phone || '—'}</td>
+                      <td className="px-4 py-3">
+                        <select
+                          value={user.role}
+                          disabled={isCurrentUser}
+                          onChange={event => void handleRoleChange(user, event.target.value as Role)}
+                          aria-label={`Role ${user.username}`}
+                          className="rounded-lg border border-[#E8E5DD] bg-white px-2 py-1 text-[10px] disabled:bg-[#F8F7F3] disabled:text-[#6B7280]"
+                        >
+                          {ROLES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                        </select>
+                      </td>
+                      <td className="px-4 py-3 text-[#6B7280]">
+                        {new Date(user.created_at).toLocaleDateString('id-ID')}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setError(null);
+                            setResetTarget(user);
+                          }}
+                          className="inline-flex items-center gap-1 rounded-lg border border-[#E8E5DD] px-2 py-1 font-semibold hover:border-[#B49453]"
+                        >
+                          <KeyRound className="h-3 w-3" />
+                          Reset password
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Add Agent Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 border border-[#E8E5DD] shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-sm text-[#142544]">Tambah Anggota Tim / Agen</h3>
-              <button
-                onClick={() => setIsAddModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-4 h-4" />
+      {isCreateOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <form onSubmit={event => void handleCreateUser(event)} className="w-full max-w-md space-y-3 rounded-2xl border border-[#E8E5DD] bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-[#142544]">Tambah User</h3>
+                <p className="mt-1 text-[10px] text-[#6B7280]">Tidak memerlukan alamat email.</p>
+              </div>
+              <button type="button" disabled={isSaving} onClick={() => setIsCreateOpen(false)} aria-label="Tutup" className="text-[#6B7280] hover:text-[#142544]">
+                <X className="h-4 w-4" />
               </button>
             </div>
+            <label className="block text-xs font-semibold">Username *
+              <input required minLength={3} maxLength={32} pattern="[a-zA-Z0-9][a-zA-Z0-9._-]{2,31}" autoComplete="username" value={username} onChange={event => setUsername(event.target.value)} className="mt-1 w-full rounded-xl border border-[#E8E5DD] px-3 py-2 font-normal" placeholder="contoh: agen.jember" />
+            </label>
+            <label className="block text-xs font-semibold">Password awal *
+              <input required minLength={12} maxLength={128} type="password" autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} className="mt-1 w-full rounded-xl border border-[#E8E5DD] px-3 py-2 font-normal" placeholder="Minimal 12 karakter" />
+            </label>
+            <label className="block text-xs font-semibold">Nama lengkap *
+              <input required maxLength={120} value={fullName} onChange={event => setFullName(event.target.value)} className="mt-1 w-full rounded-xl border border-[#E8E5DD] px-3 py-2 font-normal" />
+            </label>
+            <label className="block text-xs font-semibold">Nomor telepon
+              <input maxLength={32} value={phone} onChange={event => setPhone(event.target.value)} className="mt-1 w-full rounded-xl border border-[#E8E5DD] px-3 py-2 font-normal" />
+            </label>
+            <label className="block text-xs font-semibold">Role *
+              <select value={role} onChange={event => setRole(event.target.value as Role)} className="mt-1 w-full rounded-xl border border-[#E8E5DD] bg-white px-3 py-2 font-normal">
+                {ROLES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </label>
+            <p className="text-[10px] leading-relaxed text-[#6B7280]">
+              Username menjadi nama login. Password hanya ditampilkan saat dibuat; berikan kepada user dengan aman.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" disabled={isSaving} onClick={() => setIsCreateOpen(false)} className="rounded-xl border border-[#E8E5DD] px-3 py-2 text-xs font-semibold text-[#6B7280]">Batal</button>
+              <button type="submit" disabled={isSaving} className="rounded-xl bg-[#142544] px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
+                {isSaving ? 'Membuat user...' : 'Buat User'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
-            <form onSubmit={handleCreateAgent} className="space-y-3 text-xs text-[#142544]">
+      {resetTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <form onSubmit={event => void handleResetPassword(event)} className="w-full max-w-sm space-y-4 rounded-2xl border border-[#E8E5DD] bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between">
               <div>
-                <label className="block font-semibold mb-1">Nama Lengkap *</label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Contoh: Farhan Alamsyah"
-                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#C9A34E]"
-                />
+                <h3 className="text-sm font-bold text-[#142544]">Reset password</h3>
+                <p className="mt-1 text-xs text-[#6B7280]">User @{resetTarget.username}</p>
               </div>
-
-              <div>
-                <label className="block font-semibold mb-1">Email Resmi *</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="farhan@sentraproperty.id"
-                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#C9A34E]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-1">Nomor Telepon / WA *</label>
-                <input
-                  type="text"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="0812-xxxx-xxxx"
-                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#C9A34E]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-1">Peran / Role *</label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as any)}
-                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#C9A34E]"
-                >
-                  <option value="internal_agent">Internal Agent</option>
-                  <option value="partner_agent">Partner Agent (Mitra)</option>
-                  <option value="admin">Admin Reviewer</option>
-                  <option value="super_admin">Super Admin</option>
-                </select>
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-3 py-1.5 rounded-xl border border-[#E8E5DD] text-[#6B7280] font-semibold"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 rounded-xl bg-[#142544] text-white font-bold"
-                >
-                  Simpan Anggota
-                </button>
-              </div>
-            </form>
-          </div>
+              <button type="button" disabled={isSaving} onClick={() => setResetTarget(null)} aria-label="Tutup" className="text-[#6B7280]">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <label className="block text-xs font-semibold">Password baru *
+              <input required minLength={12} maxLength={128} type="password" autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)} className="mt-1 w-full rounded-xl border border-[#E8E5DD] px-3 py-2 font-normal" />
+            </label>
+            <div className="flex justify-end gap-2">
+              <button type="button" disabled={isSaving} onClick={() => setResetTarget(null)} className="rounded-xl border border-[#E8E5DD] px-3 py-2 text-xs font-semibold">Batal</button>
+              <button type="submit" disabled={isSaving} className="rounded-xl bg-[#142544] px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
+                {isSaving ? 'Menyimpan...' : 'Simpan password'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </DashboardLayout>

@@ -24,6 +24,7 @@ export const PublicAppDetailPage: React.FC<{ basePath?: string }> = ({ basePath 
   const [favoriteIds, setFavoriteIds] = useState<string[]>(readPublicAppFavorites);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
   const [imageFailed, setImageFailed] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     let isActive = true;
@@ -52,9 +53,13 @@ export const PublicAppDetailPage: React.FC<{ basePath?: string }> = ({ basePath 
   useEffect(() => {
     setImageFailed(false);
     setShareMessage(null);
+    setActiveImageIndex(0);
   }, [slug]);
 
   const property = properties.find((item) => item.slug === slug);
+  const galleryImages = property?.images?.length
+    ? property.images
+    : property?.image ? [property.image] : [];
 
   const toggleFavorite = () => {
     if (!property) return;
@@ -141,10 +146,10 @@ export const PublicAppDetailPage: React.FC<{ basePath?: string }> = ({ basePath 
 
       <main className="mx-auto max-w-3xl">
         <section className="relative aspect-[4/3] max-h-[480px] overflow-hidden bg-[#142544] sm:aspect-[16/9]">
-          {property.image && !imageFailed ? (
-            <img src={property.image} alt={property.title} onError={() => setImageFailed(true)} className="h-full w-full object-cover" />
+          {galleryImages[activeImageIndex] && !imageFailed ? (
+            <img src={galleryImages[activeImageIndex]} alt={property.title} onError={() => setImageFailed(true)} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-[#E0C477]">
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-[#D8C596]">
               <Building className="h-14 w-14" />
               <span className="text-sm font-medium">Foto properti belum tersedia</span>
             </div>
@@ -153,7 +158,7 @@ export const PublicAppDetailPage: React.FC<{ basePath?: string }> = ({ basePath 
             {isRent ? 'Disewakan' : 'Dijual'} · {property.property_type}
           </span>
           {isSampleData && (
-            <span className="absolute left-4 top-14 rounded-lg bg-[#C9A34E] px-3 py-1.5 text-xs font-bold text-[#142544] shadow">
+            <span className="absolute left-4 top-14 rounded-lg bg-[#B49453] px-3 py-1.5 text-xs font-bold text-[#142544] shadow">
               DATA CONTOH
             </span>
           )}
@@ -162,11 +167,32 @@ export const PublicAppDetailPage: React.FC<{ basePath?: string }> = ({ basePath 
             onClick={toggleFavorite}
             aria-label={isFavorite ? 'Hapus dari favorit' : 'Simpan ke favorit'}
             aria-pressed={isFavorite}
-            className="absolute right-4 top-4 rounded-full bg-white p-2.5 text-[#C9A34E] shadow"
+            className="absolute right-4 top-4 rounded-full bg-white p-2.5 text-[#B49453] shadow"
           >
             <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
           </button>
         </section>
+        {galleryImages.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto px-4 py-3">
+            {galleryImages.map((imageUrl, index) => (
+              <button
+                key={imageUrl}
+                type="button"
+                onClick={() => {
+                  setActiveImageIndex(index);
+                  setImageFailed(false);
+                }}
+                aria-label={`Lihat foto ${index + 1}`}
+                aria-pressed={activeImageIndex === index}
+                className={`h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 ${
+                  activeImageIndex === index ? 'border-[#B49453]' : 'border-transparent'
+                }`}
+              >
+                <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
 
         <section className="space-y-5 px-4 py-5">
           {isSampleData && (
@@ -178,7 +204,7 @@ export const PublicAppDetailPage: React.FC<{ basePath?: string }> = ({ basePath 
             <p className="text-xl font-extrabold text-[#142544]">{formatRupiah(property.price, isRent)}</p>
             <h1 className="mt-1 text-lg font-bold leading-snug text-[#142544]" style={{ fontWeight: 700 }}>{property.title}</h1>
             <p className="mt-2 flex items-start gap-2 text-sm text-[#6B7280]">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#C9A34E]" />
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#B49453]" />
               <span>{property.address || `${property.district}, ${property.city}`}</span>
             </p>
           </div>
@@ -191,7 +217,7 @@ export const PublicAppDetailPage: React.FC<{ basePath?: string }> = ({ basePath 
               { icon: Car, label: 'Parkir', value: property.parking_spaces },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="min-w-0">
-                <Icon className="mx-auto h-4 w-4 text-[#C9A34E]" />
+                <Icon className="mx-auto h-4 w-4 text-[#B49453]" />
                 <p className="mt-1 truncate text-xs font-bold">{value || '—'}</p>
                 <p className="mt-0.5 text-[9px] leading-tight text-[#6B7280]">{label}</p>
               </div>

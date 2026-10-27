@@ -1,7 +1,13 @@
 import { supabase } from './supabase';
+import {
+  compressPropertyImage,
+  CompressedPropertyImage,
+  MAX_PROPERTY_IMAGE_SIZE,
+} from './compressPropertyImage';
 
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+export type PropertyImageUploadProgress =
+  | { stage: 'compressing' }
+  | { stage: 'uploading'; compression: CompressedPropertyImage };
 
 interface CloudinaryUploadSignature {
   cloudName: string;
@@ -15,6 +21,7 @@ interface CloudinaryUploadSignature {
 
 interface CloudinaryUploadResponse {
   secure_url?: unknown;
+  bytes?: unknown;
   error?: { message?: unknown };
 }
 
@@ -30,53 +37,21 @@ const isUploadSignature = (value: unknown): value is CloudinaryUploadSignature =
     && typeof data.signature === 'string';
 };
 
-const prepareImage = async (file: File): Promise<File> => {
-  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-    throw new Error('Pilih gambar JPG, PNG, atau WebP.');
-  }
-  if (file.size > MAX_IMAGE_SIZE) {
-    throw new Error('Ukuran foto maksimal 10 MB.');
-  }
-
-  let bitmap: ImageBitmap;
-  try {
-    bitmap = await createImageBitmap(file);
-  } catch (error) {
-    throw new Error('File gambar tidak dapat dibaca. Coba simpan ulang sebagai JPG, PNG, atau WebP.', { cause: error });
-  }
-
-  try {
-    const maxDimension = 1800;
-    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-
-    const context = canvas.getContext('2d');
-    if (!context) throw new Error('Browser tidak dapat memproses foto.');
-    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-
-    const optimizedBlob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob(
-        blob => blob ? resolve(blob) : reject(new Error('Gagal mengoptimalkan foto.')),
-        'image/webp',
-        0.82
-      );
-    });
-
-    if (optimizedBlob.size >= file.size) return file;
-    return new File([optimizedBlob], `${file.name.replace(/\.[^.]+$/, '')}.webp`, {
-      type: 'image/webp',
-      lastModified: Date.now(),
-    });
-  } finally {
-    bitmap.close();
-  }
-};
-
-export const uploadPropertyImage = async (file: File): Promise<string> => {
+export const uploadPropertyImage = async (
+  file: File,
+  onProgress?: (progress: PropertyImageUploadProgress) => void
+): Promise<string> => {
   if (!supabase) throw new Error('Supabase belum dikonfigurasi untuk upload foto.');
-  const optimizedFile = await prepareImage(file);
+  onProgress?.({ stage: 'compressing' });
+  const compression = await compressPropertyImage(file);
+  if (
+    compression.file.size > MAX_PROPERTY_IMAGE_SIZE
+    || compression.file.type !== 'image/webp' && compression.file.type !== 'image/jpeg'
+  ) {
+    throw new Error('Gambar hasil kompresi tidak memenuhi batas ukuran atau format yang diizinkan.');
+  }
+  const optimizedFile = compression.file;
+  onProgress?.({ stage: 'uploading', compression });
 
   const { data: signatureData, error: signatureError } = await supabase.functions.invoke(
     'cloudinary-upload-signature',
@@ -124,6 +99,9 @@ export const uploadPropertyImage = async (file: File): Promise<string> => {
   }
   if (typeof result.secure_url !== 'string' || !result.secure_url.startsWith('https://')) {
     throw new Error('Cloudinary tidak mengembalikan URL foto HTTPS yang valid.');
+  }
+  if (typeof result.bytes === 'number' && result.bytes > MAX_PROPERTY_IMAGE_SIZE) {
+    throw new Error('Cloudinary menerima gambar di atas batas 400 KB. Periksa batas ukuran Upload Preset.');
   }
 
   return result.secure_url.replace('/upload/', '/upload/f_auto,q_auto/');

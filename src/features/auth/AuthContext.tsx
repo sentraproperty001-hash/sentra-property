@@ -3,6 +3,7 @@ import { Profile, Role } from '../../types';
 import { PROFILES } from '../../data/demo-data';
 import { userRepository } from '../../repositories/userRepository';
 import { isDemoMode, supabase, supabaseConfigurationError } from '../../lib/supabase';
+import { isEmailLogin, normalizeUsername } from '../../lib/usernameAuth';
 
 const AUTH_STORAGE_KEY = 'sentra_property_auth_user_v2';
 const isRole = (value: unknown): value is Role => (
@@ -17,7 +18,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   authError: string | null;
   switchUser: (userId: string) => void;
-  login: (email: string, password: string) => Promise<void>;
+  refreshDemoProfiles: () => void;
+  login: (usernameOrEmail: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isSuperAdmin: boolean;
   isAdmin: boolean;
@@ -67,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loadProfile = async (userId: string, email: string) => {
       const { data, error } = await authClient
         .from('profiles')
-        .select('id,full_name,phone,role,created_at')
+        .select('id,username,full_name,phone,role,created_at')
         .eq('id', userId)
         .maybeSingle();
 
@@ -80,6 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const profile: Profile = {
         id: data.id,
+        username: data.username || email.split('@')[0],
         full_name: data.full_name || email,
         email,
         phone: data.phone || '',
@@ -165,11 +168,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const refreshDemoProfiles = () => {
+    if (isDemoMode) setAllProfiles(userRepository.findAll());
+  };
+
   const loadAuthenticatedProfile = useCallback(async (userId: string, email: string) => {
     if (!supabase) throw new Error(supabaseConfigurationError || 'Supabase belum dikonfigurasi.');
     const { data, error } = await supabase
       .from('profiles')
-      .select('id,full_name,phone,role,created_at')
+      .select('id,username,full_name,phone,role,created_at')
       .eq('id', userId)
       .maybeSingle();
     if (error) throw new Error('Gagal memuat profil akun dari Supabase.', { cause: error });
@@ -178,6 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     const profile: Profile = {
       id: data.id,
+      username: data.username || email.split('@')[0],
       full_name: data.full_name || email,
       email,
       phone: data.phone || '',
@@ -191,10 +199,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAuthError(null);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (usernameOrEmail: string, password: string) => {
+    const loginIdentifier = usernameOrEmail.trim();
     if (isDemoMode) {
-      const found = allProfiles.find(p => p.email.toLowerCase() === email.toLowerCase().trim());
-      if (!found) throw new Error('Email tidak terdaftar di akun demo. Pilih salah satu profil demo.');
+      const username = normalizeUsername(loginIdentifier);
+      const found = allProfiles.find(p => (
+        p.email.toLowerCase() === username
+        || p.username?.toLowerCase() === username
+        || !isEmailLogin(loginIdentifier) && p.email.toLowerCase().startsWith(`${username}@`)
+      ));
+      if (!found) throw new Error('Username tidak terdaftar di akun demo. Pilih salah satu profil demo.');
       setCurrentUser(found);
       setIsAuthenticated(true);
       return;
@@ -205,13 +219,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     setAuthError(null);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-      if (error) throw new Error(error.message);
-      if (!data.user) throw new Error('Supabase tidak mengembalikan akun setelah login.');
-      await loadAuthenticatedProfile(data.user.id, data.user.email || email.trim());
+      if (isEmailLogin(loginIdentifier)) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: loginIdentifier,
+          password,
+        });
+        if (error) throw new Error(error.message);
+        if (!data.user) throw new Error('Supabase tidak mengembalikan akun setelah login.');
+        await loadAuthenticatedProfile(data.user.id, data.user.email || loginIdentifier);
+      } else {
+        const { data, error } = await supabase.functions.invoke('username-login', {
+          body: { username: normalizeUsername(loginIdentifier), password },
+        });
+        if (error) throw new Error(error.message || 'Login dengan username gagal.');
+        const response = data as {
+          session?: { access_token?: unknown; refresh_token?: unknown };
+          error?: unknown;
+        } | null;
+        if (typeof response?.error === 'string') throw new Error(response.error);
+        if (
+          typeof response?.session?.access_token !== 'string'
+          || typeof response.session.refresh_token !== 'string'
+        ) {
+          throw new Error('Server login username mengembalikan sesi yang tidak valid.');
+        }
+        const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+          access_token: response.session.access_token,
+          refresh_token: response.session.refresh_token,
+        });
+        if (sessionError) throw new Error('Sesi login username gagal disimpan.', { cause: sessionError });
+        if (!sessionData.user) throw new Error('Supabase tidak mengembalikan akun setelah login username.');
+        await loadAuthenticatedProfile(sessionData.user.id, sessionData.user.email || loginIdentifier);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login gagal.';
       setAuthError(message);
@@ -255,6 +294,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated,
         authError,
         switchUser,
+        refreshDemoProfiles,
         login,
         logout,
         isSuperAdmin,

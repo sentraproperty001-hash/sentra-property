@@ -30,22 +30,23 @@ Jalankan secara manual hanya setelah skema dan kebijakan RLS ditinjau serta pemi
 - Contoh provisioning satu akun setelah membuat user melalui Supabase Dashboard (ganti nilai placeholder; jalankan sebagai pemilik proyek di SQL Editor, bukan dari aplikasi):
 
   ```sql
-  INSERT INTO public.profiles (id, full_name, phone, role)
-  VALUES ('AUTH_USER_UUID', 'Nama Pengguna', 'Nomor Telepon', 'super_admin');
+  INSERT INTO public.profiles (id, username, full_name, phone, role)
+  VALUES ('AUTH_USER_UUID', 'nama-pengguna', 'Nama Pengguna', 'Nomor Telepon', 'super_admin');
   ```
 
-  Gunakan role `admin`, `internal_agent`, atau `partner_agent` sesuai kewenangan. Buat profil hanya jika belum ada untuk UUID tersebut.
+  Migration `20261027090000_username_accounts.sql` menambahkan username wajib dan mengisi username untuk profil lama dari bagian sebelum `@` email login. Gunakan role `admin`, `internal_agent`, atau `partner_agent` sesuai kewenangan. Buat profil hanya jika belum ada untuk UUID tersebut.
 - Skema/profil dan kebijakan RLS di database aktif harus diperiksa sebelum portal digunakan. Migrasi lokal tidak membuktikan bahwa skema atau kebijakan tersebut telah diterapkan.
 - Agent hanya dapat membuat listing `draft`/`pending_review` miliknya dan tidak dapat menerbitkan listing. Admin dapat meninjau dan menerbitkan; publik tetap hanya dapat membaca `published`.
-- Form produksi mengunggah file foto langsung dari browser ke Cloudinary setelah memperoleh tanda tangan singkat dari Supabase Edge Function. Secret API Cloudinary hanya disimpan di Supabase Function Secrets, bukan di bundle browser. Foto dioptimalkan di perangkat menjadi WebP jika hasilnya lebih kecil; file yang dipilih dibatasi maksimal 10 MB.
-- Supabase hanya menyimpan URL CDN Cloudinary sebagai metadata pada `property_images.storage_path`; byte foto tidak diunggah atau disajikan melalui Supabase Storage. Listing yang belum terbit tetap tidak ditampilkan pada katalog publik. URL Cloudinary merupakan URL publik, jadi gambar yang URL-nya dibagikan dapat dibuka langsung.
+- Form produksi mengompres setiap foto di browser sebelum mengunggahnya langsung ke Cloudinary setelah memperoleh tanda tangan singkat dari Supabase Edge Function. Hasil dibatasi maksimal 400 KB per foto dan lebar 1600 px, menggunakan WebP atau JPEG. File sumber dibatasi maksimal 10 MB. Secret API Cloudinary hanya disimpan di Supabase Function Secrets, bukan di bundle browser.
+- Supabase menyimpan setiap URL CDN Cloudinary sebagai baris galeri pada `property_images.storage_path`; foto pertama adalah foto utama, dan byte foto tidak diunggah atau disajikan melalui Supabase Storage. Form edit mempertahankan foto lama sampai pengguna menghapus foto tertentu. Listing yang belum terbit tetap tidak ditampilkan pada katalog publik. URL Cloudinary merupakan URL publik, jadi gambar yang URL-nya dibagikan dapat dibuka langsung.
+- Menu **Kelola User** hanya tersedia untuk `super_admin`. Akun baru memakai username (3–32 karakter) dan password minimal 12 karakter tanpa meminta email pengguna. Login username menggunakan Edge Function yang mencari alamat Auth secara privat, sehingga akun lama tetap dapat masuk dengan email atau username hasil migrasi. Fungsi admin melakukan pembuatan akun, perubahan role, dan reset password di server; Service Role Key tidak pernah dikirim ke browser.
 - [Cloudinary Free](https://cloudinary.com/pricing) saat ini menawarkan 25 monthly credits dan tidak memerlukan kartu kredit. Upload, penyimpanan, transformasi, dan delivery menggunakan batas paket Cloudinary; cek pemakaian pada dashboard Cloudinary karena kuota dan harga dapat berubah.
-- Dashboard listing, review, dan inbox leads memakai Supabase saat terkonfigurasi. Pengunjung dapat mengirim minat hanya untuk listing `published`; RLS membatasi penyimpanan lead ke listing terbit dan menetapkan lead ke agen pemiliknya. Manajemen agen, ringkasan demo, catatan follow-up, dan log aktivitas lokal tetap hanya tersedia pada mode demo.
+- Dashboard listing, review, inbox leads, dan user memakai Supabase saat terkonfigurasi. Pengunjung dapat mengirim minat hanya untuk listing `published`; RLS membatasi penyimpanan lead ke listing terbit dan menetapkan lead ke agen pemiliknya. Ringkasan demo, catatan follow-up, dan log aktivitas lokal tetap hanya tersedia pada mode demo.
 
 ## Menyiapkan upload foto Cloudinary
 
 1. Buat akun Cloudinary Free, lalu catat **Cloud name**, **API Key**, dan **API Secret** dari dashboard Cloudinary. Jangan masukkan API Secret ke `.env.local`, `VITE_*`, atau kode frontend.
-2. Di Cloudinary Console, buat [Upload Preset](https://cloudinary.com/documentation/upload_presets) bernama `sentra_property_signed` dengan mode **Signed**. Batasi format yang diizinkan ke `jpg`, `jpeg`, `png`, dan `webp`, dan ukuran file maksimum 10 MB. Jangan mengaktifkan overwrite. Gambar perlu dapat diakses publik agar pengunjung website/PWA dapat melihat listing terbit.
+2. Di Cloudinary Console, buat [Upload Preset](https://cloudinary.com/documentation/upload_presets) bernama `sentra_property_signed` dengan mode **Signed**. Batasi format yang diizinkan ke `jpg`, `jpeg`, dan `webp`, serta tetapkan **maximum file size** menjadi **400 KB (409600 bytes)**. Batas preset ini penting: Cloudinary akan menolak file yang melewati batas, termasuk jika pemeriksaan browser dilewati. Jangan mengaktifkan overwrite. Gambar perlu dapat diakses publik agar pengunjung website/PWA dapat melihat listing terbit.
 3. Di Supabase Dashboard → **Edge Functions → Secrets**, tambahkan:
    - `CLOUDINARY_CLOUD_NAME`
    - `CLOUDINARY_API_KEY`
@@ -60,4 +61,19 @@ Jalankan secara manual hanya setelah skema dan kebijakan RLS ditinjau serta pemi
    `PROJECT_REF` adalah bagian project dari URL Supabase. Jangan menambahkan `--no-verify-jwt`; fungsi memerlukan sesi akun yang valid.
 5. Deploy frontend terbaru ke Cloudflare Pages. Upload foto tersedia setelah deploy frontend dan Edge Function, serta secrets/preset telah disiapkan.
 
-Untuk uji akhir, masuk ke portal dengan akun berprofil, buat listing draft dengan satu foto, periksa URL foto di `property_images.storage_path`, lalu pastikan file muncul di Cloudinary Media Library. Jangan uji dengan menyalin API Secret ke browser atau chat.
+## Menyiapkan akun username dan menu Kelola User
+
+1. Terapkan migration `20261027090000_username_accounts.sql` ke proyek Supabase aktif. Migration ini membuat username unik dan mengisi username untuk profil yang sudah ada.
+2. Pastikan Edge Function secret `SUPABASE_SERVICE_ROLE_KEY` tersedia. Secret ini harus tetap di Supabase, jangan masukkan ke frontend atau variabel `VITE_*`.
+3. Deploy kedua fungsi dari root repository:
+
+   ```powershell
+   supabase functions deploy username-login --project-ref PROJECT_REF
+   supabase functions deploy user-management --project-ref PROJECT_REF
+   ```
+
+   `username-login` memakai `verify_jwt = false` karena dipanggil sebelum pengguna login; fungsi memvalidasi username/password ke Supabase Auth dan tidak mengungkap alamat email. `user-management` tetap memerlukan JWT login dan memeriksa role `super_admin` di server.
+4. Deploy frontend terbaru. Login lama dengan email tetap didukung; username hasil migrasi juga dapat digunakan. Buat akun baru melalui **Portal → Kelola User**.
+5. Untuk produksi, batasi signup publik di Supabase Auth agar akun hanya dibuat oleh menu super admin.
+
+Untuk uji akhir, masuk ke portal dengan akun berprofil, buat listing draft dengan satu foto, periksa URL foto di `property_images.storage_path`, lalu pastikan file muncul di Cloudinary Media Library. Periksa ukuran maksimum Upload Preset setelah dibuat atau diperbarui. Jangan uji dengan menyalin API Secret ke browser atau chat.

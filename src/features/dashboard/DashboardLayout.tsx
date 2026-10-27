@@ -100,9 +100,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     },
     {
       to: '/dashboard/agents',
-      label: 'Tim & Agen',
+      label: 'Kelola User',
       icon: UserCheck,
-      allowed: isDemoMode && isSuperAdmin,
+      allowed: isSuperAdmin,
     },
     {
       to: '/dashboard/activities',
@@ -118,7 +118,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       <div className="md:hidden bg-[#142544] text-white p-4 flex items-center justify-between sticky top-0 z-50 border-b border-[#0B1730]">
         <BrandLogo variant="dark" size="sm" />
         <div className="flex items-center gap-2">
-          <div className="px-2.5 py-1 rounded-lg bg-white/10 text-[#C9A34E] text-xs font-bold flex items-center gap-1">
+          <div className="px-2.5 py-1 rounded-lg bg-white/10 text-[#B49453] text-xs font-bold flex items-center gap-1">
             <span className="truncate max-w-[90px]">{currentUser.full_name}</span>
             {isDemoMode && (
               <button
@@ -155,7 +155,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           {/* User profile card with Quick Role Switcher */}
           <div className="relative mb-6 p-3 rounded-xl bg-white/5 border border-white/10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase tracking-wider font-semibold text-[#C9A34E]">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-[#B49453]">
                 {isDemoMode ? 'Akun Aktif (Simulasi)' : 'Akun Terverifikasi'}
               </span>
               {isDemoMode && (
@@ -164,13 +164,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   className="text-[10px] text-gray-300 hover:text-white flex items-center gap-0.5 underline cursor-pointer"
                 >
                   <span>Ganti Role</span>
-                  <ChevronDown className="w-3 h-3 text-[#C9A34E]" />
+                  <ChevronDown className="w-3 h-3 text-[#B49453]" />
                 </button>
               )}
             </div>
 
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-[#C9A34E] text-[#142544] font-bold flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-[#B49453] text-[#142544] font-bold flex items-center justify-center flex-shrink-0">
                 {currentUser.role === 'super_admin' ? (
                   <ShieldCheck className="w-5 h-5 text-[#142544]" />
                 ) : currentUser.role === 'admin' ? (
@@ -181,7 +181,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold text-white truncate">{currentUser.full_name}</p>
-                <span className="inline-block px-1.5 py-0.2 rounded text-[9px] font-bold tracking-wider uppercase bg-[#C9A34E]/20 text-[#E0C477] border border-[#C9A34E]/40 mt-0.5">
+                <span className="inline-block px-1.5 py-0.2 rounded text-[9px] font-bold tracking-wider uppercase bg-[#B49453]/20 text-[#D8C596] border border-[#B49453]/40 mt-0.5">
                   {currentUser.role.replace('_', ' ')}
                 </span>
               </div>
@@ -189,7 +189,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
             {/* Role dropdown modal/flyout */}
             {isDemoMode && roleDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full mt-2 bg-[#0B1730] border border-[#C9A34E]/30 rounded-xl shadow-xl p-2 z-50">
+              <div className="absolute left-0 right-0 top-full mt-2 bg-[#0B1730] border border-[#B49453]/30 rounded-xl shadow-xl p-2 z-50">
                 <div className="text-[10px] font-bold text-gray-400 px-2 py-1 uppercase">
                   Pilih Simulasi Role:
                 </div>
@@ -199,13 +199,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     onClick={() => handleRoleChange(p.id)}
                     className={`w-full text-left p-2 rounded-lg text-xs transition flex items-center justify-between ${
                       currentUser.id === p.id
-                        ? 'bg-[#C9A34E] text-[#142544] font-bold'
+                        ? 'bg-[#B49453] text-[#142544] font-bold'
                         : 'text-gray-200 hover:bg-white/10'
                     }`}
                   >
                     <div>
                       <p className="text-xs truncate">{p.full_name}</p>
-                      <p className={`text-[9px] uppercase ${currentUser.id === p.id ? 'text-[#142544]/80' : 'text-[#C9A34E]'}`}>
+                      <p className={`text-[9px] uppercase ${currentUser.id === p.id ? 'text-[#142544]/80' : 'text-[#B49453]'}`}>
                         {p.role.replace('_', ' ')}
                       </p>
                     </div>
@@ -234,7 +234,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     className={({ isActive }) =>
                       `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition ${
                         isActive
-                          ? 'bg-[#C9A34E] text-[#142544] font-bold shadow-sm'
+                          ? 'bg-[#B49453] text-[#142544] font-bold shadow-sm'
                           : 'text-gray-300 hover:bg-white/5 hover:text-white'
                       }`
                     }
@@ -267,7 +267,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             className="flex items-center justify-between px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition"
           >
             <span className="flex items-center gap-2">
-              <ExternalLink className="w-4 h-4 text-[#C9A34E]" />
+              <ExternalLink className="w-4 h-4 text-[#B49453]" />
               <span>Lihat Website Publik</span>
             </span>
           </Link>
@@ -298,9 +298,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
           <div className="flex items-center gap-3 flex-wrap">
             <div className="hidden lg:flex items-center gap-2 bg-[#F8F7F3] border border-[#E8E5DD] px-3 py-1.5 rounded-xl">
-              {isDemoMode && <Sparkles className="w-3.5 h-3.5 text-[#C9A34E]" />}
+              {isDemoMode && <Sparkles className="w-3.5 h-3.5 text-[#B49453]" />}
               <span className="text-[11px] font-semibold text-[#142544]">
-                Role: <strong className="text-[#C9A34E] uppercase">{currentUser.role.replace('_', ' ')}</strong>
+                Role: <strong className="text-[#B49453] uppercase">{currentUser.role.replace('_', ' ')}</strong>
               </span>
               {isDemoMode && (
                 <button

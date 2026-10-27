@@ -40,7 +40,7 @@ export const userRepository = {
     }
     const { data, error } = await supabase
       .from('profiles')
-      .select('id,full_name,phone,role,created_at')
+      .select('id,username,full_name,phone,role,created_at')
       .order('created_at', { ascending: true });
     if (error) throw new Error('Gagal memuat profil agen dari Supabase.', { cause: error });
 
@@ -53,6 +53,7 @@ export const userRepository = {
       }
       return {
         id: profile.id,
+        username: profile.username,
         full_name: profile.full_name || 'Agen Sentra Property',
         email: '',
         phone: profile.phone || '',
@@ -102,5 +103,16 @@ export const userRepository = {
     const next = [...current, newProfile];
     saveData(next);
     return newProfile;
+  },
+
+  updateRole: (id: string, role: Role): Profile | undefined => {
+    let updatedProfile: Profile | undefined;
+    const next = loadData().map(profile => {
+      if (profile.id !== id) return profile;
+      updatedProfile = { ...profile, role };
+      return updatedProfile;
+    });
+    saveData(next);
+    return updatedProfile;
   },
 };

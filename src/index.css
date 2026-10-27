@@ -4,9 +4,9 @@
   --color-navy-main: #142544;
   --color-navy-dark: #0B1730;
   --color-navy-light: #1D355E;
-  --color-gold-main: #C9A34E;
-  --color-gold-light: #E0C477;
-  --color-gold-dark: #A68233;
+  --color-gold-main: #B49453;
+  --color-gold-light: #D8C596;
+  --color-gold-dark: #80652F;
   --color-brand-white: #FFFFFF;
   --color-ivory: #F8F7F3;
   --color-text-secondary: #6B7280;
@@ -17,8 +17,8 @@
 :root {
   --navy-main: #142544;
   --navy-dark: #0B1730;
-  --gold-main: #C9A34E;
-  --gold-light: #E0C477;
+  --gold-main: #B49453;
+  --gold-light: #D8C596;
   --white: #FFFFFF;
   --ivory: #F8F7F3;
   --text-secondary: #6B7280;
@@ -48,11 +48,22 @@ h1, h2, h3, h4, h5, h6 {
   background: #F8F7F3;
 }
 ::-webkit-scrollbar-thumb {
-  background: #C9A34E;
+  background: #B49453;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #A68233;
+  background: #80652F;
+}
+
+[class~="bg-[#B49453]"],
+[class~="bg-[#D8C596]"] {
+  background-image: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.06) 34%,
+    rgba(91, 67, 25, 0.08) 68%,
+    rgba(255, 255, 255, 0.16) 100%
+  );
 }
 
 .public-app-horizontal-scroll {

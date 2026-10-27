@@ -53,7 +53,7 @@ export const ActivityLogPage: React.FC = () => {
       case 'reject':
         return <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold">DITOLAK</span>;
       case 'submit_review':
-        return <span className="px-2 py-0.5 rounded bg-[#C9A34E]/20 text-[#142544] text-[10px] font-bold">AJUKAN REVIEW</span>;
+        return <span className="px-2 py-0.5 rounded bg-[#B49453]/20 text-[#142544] text-[10px] font-bold">AJUKAN REVIEW</span>;
       case 'create':
         return <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold">BUAT BARU</span>;
       case 'update':
@@ -82,7 +82,7 @@ export const ActivityLogPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama staf, judul properti, atau rincian..."
-              className="w-full pl-9 pr-3 py-2 border border-[#E8E5DD] rounded-xl text-xs text-[#142544] focus:outline-none focus:ring-1 focus:ring-[#C9A34E]"
+              className="w-full pl-9 pr-3 py-2 border border-[#E8E5DD] rounded-xl text-xs text-[#142544] focus:outline-none focus:ring-1 focus:ring-[#B49453]"
             />
           </div>
 
@@ -90,7 +90,7 @@ export const ActivityLogPage: React.FC = () => {
             <select
               value={filterAction}
               onChange={(e) => setFilterAction(e.target.value)}
-              className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl text-xs text-[#142544] focus:outline-none focus:ring-1 focus:ring-[#C9A34E]"
+              className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl text-xs text-[#142544] focus:outline-none focus:ring-1 focus:ring-[#B49453]"
             >
               <option value="all">Semua Jenis Aksi</option>
               <option value="create">Buat Properti</option>
@@ -125,7 +125,7 @@ export const ActivityLogPage: React.FC = () => {
                     <div className="flex items-center gap-2 flex-wrap">
                       {getActionBadge(log.action)}
                       <span className="font-extrabold text-[#142544]">{log.user_name}</span>
-                      <span className="text-[10px] text-[#C9A34E] font-semibold bg-[#C9A34E]/10 px-1.5 py-0.2 rounded uppercase">
+                      <span className="text-[10px] text-[#B49453] font-semibold bg-[#B49453]/10 px-1.5 py-0.2 rounded uppercase">
                         {log.user_role.replace('_', ' ')}
                       </span>
                     </div>
@@ -142,7 +142,7 @@ export const ActivityLogPage: React.FC = () => {
                   </div>
 
                   <div className="text-right text-[10px] text-[#6B7280] whitespace-nowrap flex-shrink-0">
-                    <Clock className="w-3 h-3 inline mr-1 text-[#C9A34E]" />
+                    <Clock className="w-3 h-3 inline mr-1 text-[#B49453]" />
                     <span>{new Date(log.created_at).toLocaleString('id-ID')}</span>
                   </div>
                 </div>

@@ -162,7 +162,7 @@ export const LeadsManagerPage: React.FC = () => {
             onClick={() => setIsAddModalOpen(true)}
             className="px-4 py-2 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white text-xs font-bold flex items-center gap-2 shadow-sm transition"
           >
-            <Plus className="w-4 h-4 text-[#C9A34E]" />
+            <Plus className="w-4 h-4 text-[#B49453]" />
             <span>Tambah Lead Manual</span>
           </button>
         ) : undefined
@@ -219,7 +219,7 @@ export const LeadsManagerPage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama calon klien, nomor WhatsApp, atau judul properti..."
-              className="w-full pl-9 pr-3 py-2 border border-[#E8E5DD] rounded-xl text-xs text-[#142544] focus:outline-none focus:ring-1 focus:ring-[#C9A34E]"
+              className="w-full pl-9 pr-3 py-2 border border-[#E8E5DD] rounded-xl text-xs text-[#142544] focus:outline-none focus:ring-1 focus:ring-[#B49453]"
             />
           </div>
         </div>
@@ -250,7 +250,7 @@ export const LeadsManagerPage: React.FC = () => {
               return (
                 <div
                   key={lead.id}
-                  className="bg-white p-5 rounded-2xl border border-[#E8E5DD] shadow-xs hover:border-[#C9A34E] transition flex flex-col md:flex-row justify-between gap-4"
+                  className="bg-white p-5 rounded-2xl border border-[#E8E5DD] shadow-xs hover:border-[#B49453] transition flex flex-col md:flex-row justify-between gap-4"
                 >
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -279,7 +279,7 @@ export const LeadsManagerPage: React.FC = () => {
 
                     <div className="flex flex-wrap items-center gap-3 text-xs text-[#6B7280]">
                       <span className="flex items-center gap-1 text-[#142544] font-semibold">
-                        <Phone className="w-3.5 h-3.5 text-[#C9A34E]" />
+                        <Phone className="w-3.5 h-3.5 text-[#B49453]" />
                         <span>{lead.phone}</span>
                       </span>
                       {lead.email && (
@@ -292,14 +292,14 @@ export const LeadsManagerPage: React.FC = () => {
 
                     {lead.property_title && (
                       <div className="p-2 rounded-xl bg-[#F8F7F3] border border-[#E8E5DD] text-xs text-[#142544] flex items-center gap-2">
-                        <Building className="w-3.5 h-3.5 text-[#C9A34E] flex-shrink-0" />
+                        <Building className="w-3.5 h-3.5 text-[#B49453] flex-shrink-0" />
                         <span className="truncate">
                           Tertarik pada: <strong>{lead.property_title}</strong>
                         </span>
                       </div>
                     )}
 
-                    <div className="p-3 rounded-xl bg-gray-50 text-xs text-[#142544] italic border-l-2 border-[#C9A34E]">
+                    <div className="p-3 rounded-xl bg-gray-50 text-xs text-[#142544] italic border-l-2 border-[#B49453]">
                       "{lead.message}"
                     </div>
 
@@ -310,7 +310,7 @@ export const LeadsManagerPage: React.FC = () => {
                         {isDemoMode && !isEditingNotes && (
                           <button
                             onClick={() => handleStartEditNotes(lead)}
-                            className="text-[#C9A34E] hover:underline font-semibold flex items-center gap-1"
+                            className="text-[#B49453] hover:underline font-semibold flex items-center gap-1"
                           >
                             <Edit2 className="w-3 h-3" />
                             <span>{lead.notes ? 'Ubah Catatan' : '+ Tambah Catatan'}</span>
@@ -325,13 +325,13 @@ export const LeadsManagerPage: React.FC = () => {
                             value={tempNotes}
                             onChange={(e) => setTempNotes(e.target.value)}
                             placeholder="Tuliskan hasil survei, jadwal visit, atau status penawaran..."
-                            className="flex-1 px-3 py-1.5 border border-[#C9A34E] rounded-xl text-xs text-[#142544] focus:outline-none"
+                            className="flex-1 px-3 py-1.5 border border-[#B49453] rounded-xl text-xs text-[#142544] focus:outline-none"
                           />
                           <button
                             onClick={() => handleSaveNotes(lead.id)}
                             className="px-3 py-1.5 bg-[#142544] text-white rounded-xl text-xs font-bold flex items-center gap-1"
                           >
-                            <Save className="w-3.5 h-3.5 text-[#C9A34E]" />
+                            <Save className="w-3.5 h-3.5 text-[#B49453]" />
                             <span>Simpan</span>
                           </button>
                           <button
@@ -358,7 +358,7 @@ export const LeadsManagerPage: React.FC = () => {
                       <select
                         value={lead.status}
                         onChange={(e) => void handleStatusChange(lead.id, e.target.value as Lead['status'])}
-                        className="w-full px-2.5 py-1.5 border border-[#E8E5DD] rounded-xl text-xs font-bold text-[#142544] focus:ring-1 focus:ring-[#C9A34E]"
+                        className="w-full px-2.5 py-1.5 border border-[#E8E5DD] rounded-xl text-xs font-bold text-[#142544] focus:ring-1 focus:ring-[#B49453]"
                       >
                         <option value="new">Prospek Baru</option>
                         <option value="contacted">Sudah Dihubungi</option>
@@ -419,7 +419,7 @@ export const LeadsManagerPage: React.FC = () => {
                   value={newFullName}
                   onChange={(e) => setNewFullName(e.target.value)}
                   placeholder="Contoh: Bapak Irwan Santoso"
-                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#C9A34E]"
+                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#B49453]"
                 />
               </div>
 
@@ -431,7 +431,7 @@ export const LeadsManagerPage: React.FC = () => {
                   value={newPhone}
                   onChange={(e) => setNewPhone(e.target.value)}
                   placeholder="0812-xxxx-xxxx"
-                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#C9A34E]"
+                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#B49453]"
                 />
               </div>
 
@@ -442,7 +442,7 @@ export const LeadsManagerPage: React.FC = () => {
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   placeholder="klien@email.com"
-                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#C9A34E]"
+                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#B49453]"
                 />
               </div>
 
@@ -451,7 +451,7 @@ export const LeadsManagerPage: React.FC = () => {
                 <select
                   value={newPropertyId}
                   onChange={(e) => setNewPropertyId(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#C9A34E]"
+                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#B49453]"
                 >
                   <option value="">-- Tidak Terikat Properti Khusus --</option>
                   {properties.map((p) => (
@@ -469,7 +469,7 @@ export const LeadsManagerPage: React.FC = () => {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Cari rumah 2 lantai budget 1M di Kaliwates..."
-                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#C9A34E]"
+                  className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#B49453]"
                 />
               </div>
 

@@ -23,6 +23,7 @@ export type Property = {
   floors: number;
   parking_spaces: number;
   image: string;
+  images?: string[];
   status: PropertyStatus;
   rejection_reason?: string;
   created_at: string;
@@ -31,6 +32,7 @@ export type Property = {
 
 export type Profile = {
   id: string;
+  username?: string;
   full_name: string;
   email: string;
   phone: string;

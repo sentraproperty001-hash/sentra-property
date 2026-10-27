@@ -21,11 +21,11 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
     return (
       <a
         href="https://app.sentraproperty.com/?install=1"
-        className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 border border-[#C9A34E] bg-[#C9A34E] text-[#0B1730] shadow-sm hover:bg-[#E0C477] hover:shadow-md ${className}`}
+        className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 border border-[#B49453] bg-[#B49453] text-[#0B1730] shadow-sm hover:bg-[#D8C596] hover:shadow-md ${className}`}
         title="Buka portal Sentra Property untuk memasangnya"
       >
         <Download className="w-3.5 h-3.5 text-current" />
-        <span>Instal Portal</span>
+        <span>Pasang Aplikasi</span>
         <ExternalLink className="w-3 h-3 text-current" />
       </a>
     );
@@ -34,7 +34,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   // If already installed, hide button or show installed status
   if (isInstalled) {
     return (
-      <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-[#C9A34E] bg-[#C9A34E]/10 px-3 py-1.5 rounded-lg border border-[#C9A34E]/30">
+      <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-[#B49453] bg-[#B49453]/10 px-3 py-1.5 rounded-lg border border-[#B49453]/30">
         <CheckCircle className="w-3.5 h-3.5" />
         <span>Aplikasi Terpasang</span>
       </span>
@@ -61,8 +61,8 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
         type="button"
         className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 border shadow-sm ${
           isInstallable
-            ? 'bg-[#C9A34E] text-[#0B1730] border-[#C9A34E] hover:bg-[#E0C477] hover:shadow-md'
-            : 'bg-white text-[#142544] border-[#E8E5DD] hover:border-[#C9A34E] hover:text-[#C9A34E]'
+            ? 'bg-[#B49453] text-[#0B1730] border-[#B49453] hover:bg-[#D8C596] hover:shadow-md'
+            : 'bg-white text-[#142544] border-[#E8E5DD] hover:border-[#B49453] hover:text-[#B49453]'
         } ${className}`}
         title="Pasang Sentra Property di perangkat Anda"
       >
@@ -85,7 +85,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
 
             {/* Modal Header */}
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-[#142544] text-[#C9A34E] flex items-center justify-center border border-[#C9A34E]/30 shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-[#142544] text-[#B49453] flex items-center justify-center border border-[#B49453]/30 shadow-sm">
                 <Smartphone className="w-5 h-5" />
               </div>
               <div>
@@ -102,7 +102,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
             <div className="space-y-4 my-5 text-sm">
               {isIOS ? (
                 <div className="p-4 rounded-xl bg-[#F8F7F3] border border-[#E8E5DD]">
-                  <p className="font-semibold text-xs uppercase tracking-wider text-[#C9A34E] mb-2">
+                  <p className="font-semibold text-xs uppercase tracking-wider text-[#B49453] mb-2">
                     Panduan Apple iOS (Safari)
                   </p>
                   <ol className="space-y-2 text-xs text-[#142544] list-decimal list-inside leading-relaxed">
@@ -119,7 +119,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
                 </div>
               ) : (
                 <div className="p-4 rounded-xl bg-[#F8F7F3] border border-[#E8E5DD]">
-                  <p className="font-semibold text-xs uppercase tracking-wider text-[#C9A34E] mb-2">
+                  <p className="font-semibold text-xs uppercase tracking-wider text-[#B49453] mb-2">
                     Panduan Google Chrome / Edge / Android
                   </p>
                   <ol className="space-y-2 text-xs text-[#142544] list-decimal list-inside leading-relaxed">
@@ -138,7 +138,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
 
               {/* Informative note about AI Studio Preview environment */}
               <div className="p-3.5 rounded-lg bg-[#142544]/5 border border-[#142544]/10 text-xs text-[#6B7280] flex items-start gap-2.5">
-                <HelpCircle className="w-4 h-4 text-[#C9A34E] flex-shrink-0 mt-0.5" />
+                <HelpCircle className="w-4 h-4 text-[#B49453] flex-shrink-0 mt-0.5" />
                 <div className="leading-relaxed">
                   <strong className="text-[#142544] block mb-0.5">Catatan Preview:</strong>
                   Pada jendela iframe preview, browser menonaktifkan dialog otomatis. Pada website publik HTTPS yang dideploy (Cloudflare Pages), dialog instalasi 1-klik akan langsung aktif.

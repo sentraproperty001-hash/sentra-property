@@ -35,7 +35,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       <div
         className={`relative flex items-center justify-center overflow-hidden transition-transform duration-200 group-hover:scale-105 rounded-xl ${
           isDark
-            ? 'bg-white p-1 border-2 border-[#C9A34E] shadow-md'
+            ? 'bg-white p-1 border-2 border-[#B49453] shadow-md'
             : 'bg-white p-0.5 border border-[#E8E5DD] shadow-sm'
         }`}
       >
@@ -58,14 +58,14 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             </span>
             <span
               className={`font-bold tracking-widest ${textSizes[size]}`}
-              style={{ color: '#C9A34E' }}
+              style={{ color: '#B49453' }}
             >
               PROPERTY
             </span>
           </div>
           <span
             className="text-[10px] uppercase tracking-widest font-semibold mt-1"
-            style={{ color: isDark ? '#E0C477' : '#6B7280' }}
+            style={{ color: isDark ? '#D8C596' : '#6B7280' }}
           >
             Jember • Jawa Timur
           </span>

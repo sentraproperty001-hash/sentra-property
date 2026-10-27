@@ -188,7 +188,7 @@ const mapDatabaseProperty = (value: unknown, publicOnly = false): Property => {
     throw new Error('Jenis transaksi properti dari Supabase tidak valid.');
   }
 
-  let image = '';
+  let images: string[] = [];
   if (row.property_images !== undefined) {
     if (!Array.isArray(row.property_images) || !row.property_images.every(isDatabasePropertyImageRow)) {
       throw new Error('Struktur metadata gambar properti dari Supabase tidak valid.');
@@ -196,8 +196,11 @@ const mapDatabaseProperty = (value: unknown, publicOnly = false): Property => {
     const sortedImages = [...row.property_images].sort(
       (a, b) => (b.sort_order ?? 0) - (a.sort_order ?? 0)
     );
-    image = sortedImages.find(item => isHttpUrl(item.storage_path))?.storage_path || '';
+    images = sortedImages
+      .map(item => item.storage_path)
+      .filter((imageUrl, index, imageUrls) => isHttpUrl(imageUrl) && imageUrls.indexOf(imageUrl) === index);
   }
+  const image = images[0] || '';
 
   return {
     id: row.id,
@@ -220,6 +223,7 @@ const mapDatabaseProperty = (value: unknown, publicOnly = false): Property => {
     floors: row.floors ?? 0,
     parking_spaces: row.parking_spaces ?? 0,
     image,
+    images,
     status: row.status,
     rejection_reason: row.rejection_reason || undefined,
     created_at: row.created_at,
@@ -306,6 +310,63 @@ const persistPropertyImage = async (propertyId: string, imageUrl: string, title:
     sort_order: (latestImage?.sort_order || 0) + 1,
   });
   if (error) throw new Error('URL foto tidak dapat disimpan ke Supabase.', { cause: error });
+};
+
+const syncPropertyImages = async (
+  propertyId: string,
+  imageUrls: string[],
+  title: string
+): Promise<void> => {
+  if (!supabase) throw new Error('Client Supabase belum dikonfigurasi.');
+  const uniqueImageUrls = [...new Set(imageUrls)];
+  if (uniqueImageUrls.some(imageUrl => !isHttpUrl(imageUrl))) {
+    throw new Error('URL foto harus menggunakan alamat http atau https yang valid.');
+  }
+
+  const { data: existingImages, error: readError } = await supabase
+    .from('property_images')
+    .select('id,storage_path,sort_order')
+    .eq('property_id', propertyId)
+    .order('sort_order', { ascending: false });
+  if (readError) throw new Error('Gagal membaca foto listing yang tersimpan.', { cause: readError });
+
+  const existingRows = existingImages || [];
+  const existingUrls = new Set(existingRows.map(row => row.storage_path));
+  const newImages = uniqueImageUrls
+    .map((storage_path, index) => ({
+      property_id: propertyId,
+      storage_path,
+      alt_text: title,
+      sort_order: uniqueImageUrls.length - index,
+    }))
+    .filter(image => !existingUrls.has(image.storage_path));
+
+  if (newImages.length > 0) {
+    const { error } = await supabase.from('property_images').insert(newImages);
+    if (error) throw new Error('Foto baru gagal disimpan ke Supabase.', { cause: error });
+  }
+
+  for (const [index, imageUrl] of uniqueImageUrls.entries()) {
+    const existing = existingRows.find(row => row.storage_path === imageUrl);
+    if (!existing) continue;
+
+    const { error } = await supabase
+      .from('property_images')
+      .update({ sort_order: uniqueImageUrls.length - index, alt_text: title })
+      .eq('id', existing.id);
+    if (error) throw new Error('Urutan foto listing gagal diperbarui.', { cause: error });
+  }
+
+  const retainedUrls = new Set(uniqueImageUrls);
+  const removedIds = existingRows.filter(row => !retainedUrls.has(row.storage_path)).map(row => row.id);
+  for (const removedId of removedIds) {
+    const { error } = await supabase
+      .from('property_images')
+      .delete()
+      .eq('id', removedId)
+      .eq('property_id', propertyId);
+    if (error) throw new Error('Foto yang dipilih gagal dihapus dari listing.', { cause: error });
+  }
 };
 
 export interface PropertyWriteResult {
@@ -403,14 +464,22 @@ export const propertyRepository = {
     const savedProperty = mapDatabaseProperty(data);
     let warning: string | undefined;
     try {
-      await persistPropertyImage(id, property.image, property.title);
+      const imageUrls = property.images?.length
+        ? property.images
+        : property.image ? [property.image] : [];
+      await syncPropertyImages(id, imageUrls, property.title);
     } catch (imageError) {
       warning = imageError instanceof Error
         ? `Listing tersimpan, tetapi foto gagal disimpan: ${imageError.message}`
         : 'Listing tersimpan, tetapi foto gagal disimpan.';
     }
-    logSupabasePropertyActivity('create', { ...savedProperty, image: property.image }, author, `Membuat listing baru (${property.status})`);
-    return { property: { ...savedProperty, image: property.image }, warning };
+    const imageUrls = property.images?.length
+      ? property.images
+      : property.image ? [property.image] : [];
+    const mainImage = imageUrls[0] || '';
+    const createdProperty = { ...savedProperty, image: mainImage, images: imageUrls };
+    logSupabasePropertyActivity('create', createdProperty, author, `Membuat listing baru (${property.status})`);
+    return { property: createdProperty, warning };
   },
 
   updateAsync: async (
@@ -450,7 +519,16 @@ export const propertyRepository = {
 
     const savedProperty = mapDatabaseProperty(data);
     let warning: string | undefined;
-    if (updates.image) {
+    if (Object.prototype.hasOwnProperty.call(updates, 'images')) {
+      try {
+        const imageUrls = updates.images || [];
+        await syncPropertyImages(id, imageUrls, updates.title || savedProperty.title);
+      } catch (imageError) {
+        warning = imageError instanceof Error
+          ? `Listing tersimpan, tetapi galeri foto gagal diperbarui: ${imageError.message}`
+          : 'Listing tersimpan, tetapi galeri foto gagal diperbarui.';
+      }
+    } else if (updates.image) {
       try {
         await persistPropertyImage(id, updates.image, updates.title || savedProperty.title);
       } catch (imageError) {
@@ -459,7 +537,16 @@ export const propertyRepository = {
           : 'Listing tersimpan, tetapi foto gagal diperbarui.';
       }
     }
-    const updatedProperty = { ...savedProperty, image: updates.image || savedProperty.image };
+    const updatedImages = Object.prototype.hasOwnProperty.call(updates, 'images')
+      ? updates.images || []
+      : updates.image
+        ? [updates.image, ...(savedProperty.images || []).filter(imageUrl => imageUrl !== updates.image)]
+        : savedProperty.images || (savedProperty.image ? [savedProperty.image] : []);
+    const updatedProperty = {
+      ...savedProperty,
+      image: updatedImages[0] || '',
+      images: updatedImages,
+    };
     logSupabasePropertyActivity('update', updatedProperty, author, 'Memperbarui data properti');
     return { property: updatedProperty, warning };
   },

@@ -72,7 +72,7 @@ export const DashboardOverview: React.FC = () => {
           onClick={() => setIsModalOpen(true)}
           className="px-4 py-2 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white text-xs font-bold flex items-center gap-2 shadow-sm transition"
         >
-          <Plus className="w-4 h-4 text-[#C9A34E]" />
+          <Plus className="w-4 h-4 text-[#B49453]" />
           <span>Tambah Properti</span>
         </button>
       }
@@ -104,14 +104,14 @@ export const DashboardOverview: React.FC = () => {
               <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">
                 Menunggu Review
               </p>
-              <h3 className="text-2xl font-extrabold text-[#C9A34E] mt-1">
+              <h3 className="text-2xl font-extrabold text-[#B49453] mt-1">
                 {pendingProps.length}
               </h3>
               <p className="text-[10px] text-[#6B7280] mt-1">
                 {isAdmin ? 'Perlu tindakan verifikasi' : 'Sedang diajukan ke admin'}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-[#C9A34E]/10 text-[#C9A34E] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-[#B49453]/10 text-[#B49453] flex items-center justify-center">
               <Clock className="w-6 h-6" />
             </div>
           </div>
@@ -147,7 +147,7 @@ export const DashboardOverview: React.FC = () => {
                 Wilayah Jember & Sekitarnya
               </p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-[#142544]/5 text-[#C9A34E] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-[#142544]/5 text-[#B49453] flex items-center justify-center">
               <ShieldCheck className="w-6 h-6" />
             </div>
           </div>
@@ -155,9 +155,9 @@ export const DashboardOverview: React.FC = () => {
 
         {/* Action Banner for Admins if there are pending reviews */}
         {isAdmin && pendingProps.length > 0 && (
-          <div className="p-4 sm:p-5 rounded-2xl bg-[#C9A34E]/15 border border-[#C9A34E] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#B49453]/15 border border-[#B49453] flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#C9A34E] text-[#142544] flex items-center justify-center flex-shrink-0 font-bold">
+              <div className="w-10 h-10 rounded-xl bg-[#B49453] text-[#142544] flex items-center justify-center flex-shrink-0 font-bold">
                 !
               </div>
               <div>
@@ -174,7 +174,7 @@ export const DashboardOverview: React.FC = () => {
               className="px-4 py-2 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white text-xs font-bold flex items-center gap-1.5 whitespace-nowrap transition"
             >
               <span>Buka Menu Persetujuan</span>
-              <ArrowRight className="w-4 h-4 text-[#C9A34E]" />
+              <ArrowRight className="w-4 h-4 text-[#B49453]" />
             </Link>
           </div>
         )}
@@ -185,14 +185,14 @@ export const DashboardOverview: React.FC = () => {
           <div className="bg-white p-5 rounded-2xl border border-[#E8E5DD] shadow-xs flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-[#C9A34E]" />
+                <Building2 className="w-4 h-4 text-[#B49453]" />
                 <h3 className="font-bold text-sm text-[#142544]">
                   {isAdmin ? 'Listing Terbaru' : 'Listing Saya'}
                 </h3>
               </div>
               <Link
                 to="/dashboard/properties"
-                className="text-xs font-bold text-[#C9A34E] hover:underline flex items-center gap-1"
+                className="text-xs font-bold text-[#B49453] hover:underline flex items-center gap-1"
               >
                 <span>Lihat Semua</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -203,7 +203,7 @@ export const DashboardOverview: React.FC = () => {
               {myProps.slice(0, 4).map((prop) => (
                 <div
                   key={prop.id}
-                  className="p-3 rounded-xl border border-[#E8E5DD] hover:border-[#C9A34E] flex items-center gap-3 transition"
+                  className="p-3 rounded-xl border border-[#E8E5DD] hover:border-[#B49453] flex items-center gap-3 transition"
                 >
                   <img
                     src={prop.image}
@@ -232,7 +232,7 @@ export const DashboardOverview: React.FC = () => {
                     <h4 className="text-xs font-bold text-[#142544] truncate mt-1">
                       {prop.title}
                     </h4>
-                    <p className="text-[11px] font-bold text-[#C9A34E]">
+                    <p className="text-[11px] font-bold text-[#B49453]">
                       Rp {prop.price.toLocaleString('id-ID')}
                     </p>
                   </div>
@@ -245,14 +245,14 @@ export const DashboardOverview: React.FC = () => {
           <div className="bg-white p-5 rounded-2xl border border-[#E8E5DD] shadow-xs flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#C9A34E]" />
+                <Users className="w-4 h-4 text-[#B49453]" />
                 <h3 className="font-bold text-sm text-[#142544]">
                   Prospek Klien Masuk (Leads)
                 </h3>
               </div>
               <Link
                 to="/dashboard/leads"
-                className="text-xs font-bold text-[#C9A34E] hover:underline flex items-center gap-1"
+                className="text-xs font-bold text-[#B49453] hover:underline flex items-center gap-1"
               >
                 <span>Kelola Leads</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -291,7 +291,7 @@ export const DashboardOverview: React.FC = () => {
                       "{lead.message}"
                     </p>
                     {lead.property_title && (
-                      <p className="text-[10px] text-[#C9A34E] font-medium truncate mt-0.5">
+                      <p className="text-[10px] text-[#B49453] font-medium truncate mt-0.5">
                         Properti: {lead.property_title}
                       </p>
                     )}
@@ -315,14 +315,14 @@ export const DashboardOverview: React.FC = () => {
         <div className="bg-white p-5 rounded-2xl border border-[#E8E5DD] shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-[#C9A34E]" />
+              <History className="w-4 h-4 text-[#B49453]" />
               <h3 className="font-bold text-sm text-[#142544]">
                 Aktivitas & Log Keamanan Sistem
               </h3>
             </div>
             <Link
               to="/dashboard/activities"
-              className="text-xs font-bold text-[#C9A34E] hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-[#B49453] hover:underline flex items-center gap-1"
             >
               <span>Semua Log</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -338,7 +338,7 @@ export const DashboardOverview: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-bold text-[#142544]">{act.user_name}</span>
-                    <span className="text-[9px] uppercase px-1.5 py-0.2 rounded bg-white text-[#C9A34E] border border-[#E8E5DD] font-semibold">
+                    <span className="text-[9px] uppercase px-1.5 py-0.2 rounded bg-white text-[#B49453] border border-[#E8E5DD] font-semibold">
                       {act.user_role.replace('_', ' ')}
                     </span>
                     <span className="text-[10px] text-[#6B7280]">
@@ -346,7 +346,7 @@ export const DashboardOverview: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-[#142544]">
-                    <strong className="text-[#C9A34E] capitalize">{act.action.replace('_', ' ')}:</strong>{' '}
+                    <strong className="text-[#B49453] capitalize">{act.action.replace('_', ' ')}:</strong>{' '}
                     {act.entity_title} — {act.details}
                   </p>
                 </div>

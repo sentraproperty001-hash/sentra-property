@@ -95,7 +95,7 @@ export const DetailPage: React.FC = () => {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-20 text-center max-w-md">
-          <div className="w-16 h-16 rounded-full bg-[#142544]/5 text-[#C9A34E] flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-full bg-[#142544]/5 text-[#B49453] flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-8 h-8" />
           </div>
           <h1 className="text-2xl font-bold text-[#142544] mb-2">Properti Tidak Ditemukan</h1>
@@ -106,7 +106,7 @@ export const DetailPage: React.FC = () => {
             to="/katalog"
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#142544] text-white text-xs font-bold hover:bg-[#0B1730] transition shadow"
           >
-            <ArrowLeft className="w-4 h-4 text-[#C9A34E]" />
+            <ArrowLeft className="w-4 h-4 text-[#B49453]" />
             <span>Kembali ke Katalog Properti</span>
           </Link>
         </div>
@@ -132,8 +132,9 @@ export const DetailPage: React.FC = () => {
     }).format(val);
   };
 
-  // Storage-backed property images are not configured yet.
-  const galleryImages = property.image ? [property.image] : [];
+  const galleryImages = property.images?.length
+    ? property.images
+    : property.image ? [property.image] : [];
 
   // Similar properties
   const similarProperties = publishedProperties
@@ -186,9 +187,9 @@ export const DetailPage: React.FC = () => {
           {/* Breadcrumb & Navigation */}
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6 text-xs text-[#6B7280]">
             <div className="flex items-center gap-2">
-              <Link to="/" className="hover:text-[#C9A34E] transition">Beranda</Link>
+              <Link to="/" className="hover:text-[#B49453] transition">Beranda</Link>
               <span>/</span>
-              <Link to="/katalog" className="hover:text-[#C9A34E] transition">Katalog</Link>
+              <Link to="/katalog" className="hover:text-[#B49453] transition">Katalog</Link>
               <span>/</span>
               <span className="text-[#142544] font-medium truncate max-w-[200px] sm:max-w-xs">
                 {property.title}
@@ -197,9 +198,9 @@ export const DetailPage: React.FC = () => {
 
             <Link
               to="/katalog"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#142544] hover:text-[#C9A34E] transition"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#142544] hover:text-[#B49453] transition"
             >
-              <ArrowLeft className="w-3.5 h-3.5 text-[#C9A34E]" />
+              <ArrowLeft className="w-3.5 h-3.5 text-[#B49453]" />
               <span>Kembali ke Katalog</span>
             </Link>
           </div>
@@ -220,7 +221,7 @@ export const DetailPage: React.FC = () => {
                     />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center text-[#6B7280]">
-                      <Building className="w-12 h-12 text-[#C9A34E] mb-2" />
+                      <Building className="w-12 h-12 text-[#B49453] mb-2" />
                       <span className="text-sm">Foto properti belum tersedia</span>
                     </div>
                   )}
@@ -228,8 +229,8 @@ export const DetailPage: React.FC = () => {
                     <span
                       className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-md shadow-sm ${
                         isRent
-                          ? 'bg-[#C9A34E] text-[#0B1730]'
-                          : 'bg-[#142544] text-white border border-[#C9A34E]/40'
+                          ? 'bg-[#B49453] text-[#0B1730]'
+                          : 'bg-[#142544] text-white border border-[#B49453]/40'
                       }`}
                     >
                       {isRent ? 'Disewakan' : 'Dijual'}
@@ -249,7 +250,7 @@ export const DetailPage: React.FC = () => {
                       onClick={() => setSelectedImageIndex(idx)}
                       className={`relative aspect-[16/10] rounded-lg overflow-hidden border-2 transition ${
                         selectedImageIndex === idx
-                          ? 'border-[#C9A34E] ring-2 ring-[#C9A34E]/30'
+                          ? 'border-[#B49453] ring-2 ring-[#B49453]/30'
                           : 'border-[#E8E5DD] opacity-70 hover:opacity-100'
                       }`}
                     >
@@ -267,7 +268,7 @@ export const DetailPage: React.FC = () => {
                       {property.title}
                     </h1>
                     <p className="text-xs sm:text-sm text-[#6B7280] flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4 text-[#C9A34E] flex-shrink-0" />
+                      <MapPin className="w-4 h-4 text-[#B49453] flex-shrink-0" />
                       <span>{property.address}, {property.district}, Jember, Jawa Timur</span>
                     </p>
                   </div>
@@ -285,12 +286,12 @@ export const DetailPage: React.FC = () => {
 
                 {/* Specifications Grid */}
                 <div className="py-6 border-b border-[#E8E5DD]">
-                  <h2 className="text-xs font-bold text-[#C9A34E] uppercase tracking-widest mb-4">
+                  <h2 className="text-xs font-bold text-[#B49453] uppercase tracking-widest mb-4">
                     Spesifikasi Utama Properti
                   </h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div className="flex items-center gap-3 p-3 bg-[#F8F7F3] rounded-xl border border-[#E8E5DD]">
-                      <Maximize2 className="w-5 h-5 text-[#C9A34E]" />
+                      <Maximize2 className="w-5 h-5 text-[#B49453]" />
                       <div>
                         <span className="text-[10px] text-[#6B7280] block">Luas Tanah</span>
                         <span className="text-sm font-bold text-[#142544]">{property.land_area ? `${property.land_area} m²` : '-'}</span>
@@ -298,7 +299,7 @@ export const DetailPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3 p-3 bg-[#F8F7F3] rounded-xl border border-[#E8E5DD]">
-                      <Building className="w-5 h-5 text-[#C9A34E]" />
+                      <Building className="w-5 h-5 text-[#B49453]" />
                       <div>
                         <span className="text-[10px] text-[#6B7280] block">Luas Bangunan</span>
                         <span className="text-sm font-bold text-[#142544]">{property.building_area ? `${property.building_area} m²` : '-'}</span>
@@ -306,7 +307,7 @@ export const DetailPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3 p-3 bg-[#F8F7F3] rounded-xl border border-[#E8E5DD]">
-                      <Bed className="w-5 h-5 text-[#C9A34E]" />
+                      <Bed className="w-5 h-5 text-[#B49453]" />
                       <div>
                         <span className="text-[10px] text-[#6B7280] block">Kamar Tidur</span>
                         <span className="text-sm font-bold text-[#142544]">{property.bedrooms > 0 ? `${property.bedrooms} Kamar` : '-'}</span>
@@ -314,7 +315,7 @@ export const DetailPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3 p-3 bg-[#F8F7F3] rounded-xl border border-[#E8E5DD]">
-                      <Bath className="w-5 h-5 text-[#C9A34E]" />
+                      <Bath className="w-5 h-5 text-[#B49453]" />
                       <div>
                         <span className="text-[10px] text-[#6B7280] block">Kamar Mandi</span>
                         <span className="text-sm font-bold text-[#142544]">{property.bathrooms > 0 ? `${property.bathrooms} Ruang` : '-'}</span>
@@ -322,7 +323,7 @@ export const DetailPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3 p-3 bg-[#F8F7F3] rounded-xl border border-[#E8E5DD]">
-                      <Layers className="w-5 h-5 text-[#C9A34E]" />
+                      <Layers className="w-5 h-5 text-[#B49453]" />
                       <div>
                         <span className="text-[10px] text-[#6B7280] block">Jumlah Lantai</span>
                         <span className="text-sm font-bold text-[#142544]">{property.floors > 0 ? `${property.floors} Lantai` : '1 Lantai'}</span>
@@ -330,7 +331,7 @@ export const DetailPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3 p-3 bg-[#F8F7F3] rounded-xl border border-[#E8E5DD]">
-                      <Car className="w-5 h-5 text-[#C9A34E]" />
+                      <Car className="w-5 h-5 text-[#B49453]" />
                       <div>
                         <span className="text-[10px] text-[#6B7280] block">Kapasitas Parkir</span>
                         <span className="text-sm font-bold text-[#142544]">{property.parking_spaces > 0 ? `${property.parking_spaces} Mobil` : '-'}</span>
@@ -341,7 +342,7 @@ export const DetailPage: React.FC = () => {
 
                 {/* Description */}
                 <div className="pt-6">
-                  <h2 className="text-xs font-bold text-[#C9A34E] uppercase tracking-widest mb-3">
+                  <h2 className="text-xs font-bold text-[#B49453] uppercase tracking-widest mb-3">
                     Deskripsi Lengkap
                   </h2>
                   <p className="text-sm text-[#142544] leading-relaxed whitespace-pre-line">
@@ -349,7 +350,7 @@ export const DetailPage: React.FC = () => {
                   </p>
 
                   <div className="mt-6 p-4 rounded-xl bg-[#F8F7F3] border border-[#E8E5DD] flex items-start gap-3 text-xs text-[#6B7280]">
-                    <ShieldCheck className="w-5 h-5 text-[#C9A34E] flex-shrink-0 mt-0.5" />
+                    <ShieldCheck className="w-5 h-5 text-[#B49453] flex-shrink-0 mt-0.5" />
                     <div>
                       <strong className="text-[#142544] block mb-0.5">Jaminan Legalitas Sentra Property:</strong>
                       Listing ini telah melewati verifikasi status kepemilikan dan kelengkapan dokumen pendukung untuk transaksi aman di hadapan Notaris / PPAT Kabupaten Jember.
@@ -363,17 +364,17 @@ export const DetailPage: React.FC = () => {
             <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
               {/* Agent Card */}
               <div className="bg-white rounded-2xl border border-[#E8E5DD] p-6 shadow-sm text-[#142544]">
-                <span className="text-[10px] font-bold text-[#C9A34E] uppercase tracking-widest block mb-4">
+                <span className="text-[10px] font-bold text-[#B49453] uppercase tracking-widest block mb-4">
                   Agen Resmi Sentra Property
                 </span>
 
                 <div className="flex items-center gap-4 mb-5 pb-5 border-b border-[#E8E5DD]">
-                  <div className="w-14 h-14 rounded-full bg-[#142544] text-[#C9A34E] flex items-center justify-center font-bold text-lg border-2 border-[#C9A34E] shadow-sm">
-                    <User className="w-7 h-7 text-[#E0C477]" />
+                  <div className="w-14 h-14 rounded-full bg-[#142544] text-[#B49453] flex items-center justify-center font-bold text-lg border-2 border-[#B49453] shadow-sm">
+                    <User className="w-7 h-7 text-[#D8C596]" />
                   </div>
                   <div>
                     <h3 className="font-bold text-base text-[#142544]">{agent.full_name}</h3>
-                    <p className="text-xs text-[#C9A34E] font-medium capitalize">
+                    <p className="text-xs text-[#B49453] font-medium capitalize">
                       {agent.role === 'super_admin' || agent.role === 'admin'
                         ? 'Senior Property Advisor'
                         : agent.role === 'internal_agent'
@@ -391,7 +392,7 @@ export const DetailPage: React.FC = () => {
                   href={`${BUSINESS_CONFIG.whatsapp.link}?text=${whatsappMessage}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-3.5 px-4 rounded-xl bg-[#C9A34E] hover:bg-[#E0C477] text-[#0B1730] font-extrabold text-xs tracking-wider uppercase text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition mb-4"
+                  className="w-full py-3.5 px-4 rounded-xl bg-[#B49453] hover:bg-[#D8C596] text-[#0B1730] font-extrabold text-xs tracking-wider uppercase text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition mb-4"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>Hubungi via WhatsApp</span>
@@ -402,7 +403,7 @@ export const DetailPage: React.FC = () => {
                   href={`tel:${agent.phone.replace(/[^0-9]/g, '')}`}
                   className="w-full py-2.5 px-4 rounded-xl bg-[#F8F7F3] hover:bg-[#E8E5DD] text-[#142544] font-bold text-xs tracking-wide text-center flex items-center justify-center gap-2 transition"
                 >
-                  <Phone className="w-3.5 h-3.5 text-[#C9A34E]" />
+                  <Phone className="w-3.5 h-3.5 text-[#B49453]" />
                   <span>Telepon Langsung ({agent.phone})</span>
                 </a>
               </div>
@@ -415,8 +416,8 @@ export const DetailPage: React.FC = () => {
                 </p>
 
                 {submittedLead ? (
-                  <div className="p-4 rounded-xl bg-[#F8F7F3] border border-[#C9A34E] text-center text-xs text-[#142544] animate-in fade-in">
-                    <CheckCircle className="w-6 h-6 text-[#C9A34E] mx-auto mb-2" />
+                  <div className="p-4 rounded-xl bg-[#F8F7F3] border border-[#B49453] text-center text-xs text-[#142544] animate-in fade-in">
+                    <CheckCircle className="w-6 h-6 text-[#B49453] mx-auto mb-2" />
                     <strong className="block mb-1">Permintaan Anda Berhasil Dikirim!</strong>
                     <span>Agen kami akan segera menghubungi nomor telepon Anda.</span>
                     <button
@@ -445,7 +446,7 @@ export const DetailPage: React.FC = () => {
                         value={leadName}
                         onChange={(e) => setLeadName(e.target.value)}
                         placeholder="Nama Anda"
-                        className="w-full h-10 px-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A34E] text-[#142544]"
+                        className="w-full h-10 px-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B49453] text-[#142544]"
                       />
                     </div>
 
@@ -460,7 +461,7 @@ export const DetailPage: React.FC = () => {
                         value={leadPhone}
                         onChange={(e) => setLeadPhone(e.target.value)}
                         placeholder="0812xxxxxxx"
-                        className="w-full h-10 px-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A34E] text-[#142544]"
+                        className="w-full h-10 px-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B49453] text-[#142544]"
                       />
                     </div>
 
@@ -474,7 +475,7 @@ export const DetailPage: React.FC = () => {
                         value={leadMessage}
                         onChange={(e) => setLeadMessage(e.target.value)}
                         placeholder="Contoh: Saya ingin survei hari Sabtu pagi..."
-                        className="w-full p-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A34E] text-[#142544] resize-none"
+                        className="w-full p-3 text-xs bg-[#F8F7F3] border border-[#E8E5DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#B49453] text-[#142544] resize-none"
                       />
                     </div>
 
@@ -483,7 +484,7 @@ export const DetailPage: React.FC = () => {
                       disabled={isSubmittingLead}
                       className="w-full py-2.5 rounded-xl bg-[#142544] hover:bg-[#0B1730] text-white font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 shadow-sm transition"
                     >
-                      <Send className="w-3.5 h-3.5 text-[#C9A34E]" />
+                      <Send className="w-3.5 h-3.5 text-[#B49453]" />
                       <span>{isSubmittingLead ? 'Mengirim...' : 'Kirim Pesan Minat'}</span>
                     </button>
                   </form>
@@ -497,7 +498,7 @@ export const DetailPage: React.FC = () => {
             <div className="pt-10 border-t border-[#E8E5DD]">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <span className="text-xs font-bold text-[#C9A34E] uppercase tracking-widest block mb-1">
+                  <span className="text-xs font-bold text-[#B49453] uppercase tracking-widest block mb-1">
                     Pilihan Alternatif
                   </span>
                   <h2 className="text-xl sm:text-2xl font-extrabold text-[#142544]">
@@ -506,7 +507,7 @@ export const DetailPage: React.FC = () => {
                 </div>
                 <Link
                   to="/katalog"
-                  className="text-xs font-bold text-[#142544] hover:text-[#C9A34E] transition"
+                  className="text-xs font-bold text-[#142544] hover:text-[#B49453] transition"
                 >
                   Lihat Semua
                 </Link>
