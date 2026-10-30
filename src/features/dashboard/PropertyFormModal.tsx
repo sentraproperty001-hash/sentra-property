@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { propertyRepository } from '@/src/repositories/propertyRepository';
 import { formatImageSize } from '@/src/lib/compressPropertyImage';
 import { PropertyImageUploadProgress, uploadPropertyImage } from '@/src/lib/cloudinary';
-import { X, Building, Check, Sparkles, Image as ImageIcon, Star, Trash2 } from 'lucide-react';
+import { Building, Check, Sparkles, Image as ImageIcon, Star, Trash2 } from 'lucide-react';
 
 interface PropertyFormModalProps {
   isOpen: boolean;
@@ -294,13 +294,6 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
               {isEditing ? `ID: ${initialData?.id}` : `Agen Pemilik: ${currentUser.full_name} (${currentUser.role})`}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            disabled={isSaving}
-            className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {/* Form Body */}
@@ -636,15 +629,6 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
 
         {/* Footer Actions */}
         <div className="p-4 bg-[#F8F7F3] border-t border-[#E8E5DD] flex flex-col sm:flex-row items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSaving}
-            className="w-full sm:w-auto px-4 py-2 rounded-xl border border-[#E8E5DD] text-[#6B7280] hover:bg-white text-xs font-semibold"
-          >
-            Batal
-          </button>
-
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               type="button"

@@ -22,6 +22,39 @@ import {
   Eye,
 } from 'lucide-react';
 
+const PROPERTY_FORM_STATE_KEY = 'sentra_property_form_state_v1';
+
+interface PersistedPropertyFormState {
+  userId: string;
+  propertyId: string | null;
+}
+
+const getPropertyFormStorageKey = (userId: string) => `${PROPERTY_FORM_STATE_KEY}_${userId}`;
+
+const restorePropertyFormState = (userId: string): PersistedPropertyFormState | null => {
+  const storageKey = getPropertyFormStorageKey(userId);
+  try {
+    const storedState = localStorage.getItem(storageKey);
+    if (!storedState) return null;
+
+    const parsed: unknown = JSON.parse(storedState);
+    if (
+      typeof parsed === 'object'
+      && parsed !== null
+      && 'userId' in parsed
+      && parsed.userId === userId
+      && 'propertyId' in parsed
+      && (typeof parsed.propertyId === 'string' || parsed.propertyId === null)
+    ) {
+      return { userId, propertyId: parsed.propertyId };
+    }
+    localStorage.removeItem(storageKey);
+  } catch (error) {
+    console.warn('Failed to restore property form state:', error);
+  }
+  return null;
+};
+
 export const PropertyListingsManager: React.FC = () => {
   const { currentUser, isAdmin, isDemoMode } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
@@ -29,9 +62,10 @@ export const PropertyListingsManager: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [propertyTypeFilter, setPropertyTypeFilter] = useState('all');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [propertyFormState, setPropertyFormState] = useState<PersistedPropertyFormState | null>(
+    () => restorePropertyFormState(currentUser.id)
+  );
 
   const loadProperties = async () => {
     try {
@@ -56,6 +90,38 @@ export const PropertyListingsManager: React.FC = () => {
   useEffect(() => {
     void loadProperties();
   }, [currentUser, isAdmin, isDemoMode]);
+
+  useEffect(() => {
+    const storageKey = getPropertyFormStorageKey(currentUser.id);
+    const syncPropertyFormState = (event: StorageEvent) => {
+      if (event.storageArea === localStorage && event.key === storageKey && event.newValue === null) {
+        setPropertyFormState(null);
+      }
+    };
+    window.addEventListener('storage', syncPropertyFormState);
+    return () => window.removeEventListener('storage', syncPropertyFormState);
+  }, [currentUser.id]);
+
+  const savePropertyFormState = (state: PersistedPropertyFormState | null) => {
+    const storageKey = getPropertyFormStorageKey(currentUser.id);
+    try {
+      if (state) localStorage.setItem(storageKey, JSON.stringify(state));
+      else localStorage.removeItem(storageKey);
+      setPropertyFormState(state);
+      setLoadError(null);
+    } catch (error) {
+      console.error('Failed to persist property form state:', error);
+      setLoadError('Status formulir listing tidak dapat disimpan di browser ini.');
+      setPropertyFormState(state);
+    }
+  };
+
+  const editingProperty = propertyFormState?.propertyId
+    ? properties.find(property => property.id === propertyFormState.propertyId) || null
+    : null;
+  const isModalOpen = Boolean(
+    propertyFormState && (!propertyFormState.propertyId || editingProperty)
+  );
 
   // Role scoping:
   // Admins see all listings; Agents see their own listings by default, but can toggle to see all published
@@ -86,13 +152,15 @@ export const PropertyListingsManager: React.FC = () => {
   });
 
   const handleOpenCreate = () => {
-    setEditingProperty(null);
-    setIsModalOpen(true);
+    savePropertyFormState({ userId: currentUser.id, propertyId: null });
   };
 
   const handleOpenEdit = (prop: Property) => {
-    setEditingProperty(prop);
-    setIsModalOpen(true);
+    savePropertyFormState({ userId: currentUser.id, propertyId: prop.id });
+  };
+
+  const handleClosePropertyForm = () => {
+    savePropertyFormState(null);
   };
 
   const handleDelete = async (prop: Property) => {
@@ -398,7 +466,7 @@ export const PropertyListingsManager: React.FC = () => {
 
       <PropertyFormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleClosePropertyForm}
         onSuccess={loadProperties}
         initialData={editingProperty}
       />
