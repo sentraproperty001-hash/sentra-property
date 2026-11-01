@@ -104,12 +104,28 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     const storedImages = getPropertyImages(initialData);
+    setTitle(initialData?.title || '');
+    setPropertyType(initialData?.property_type || 'rumah');
+    setListingType(initialData?.listing_type || 'jual');
+    setPrice(initialData?.price ?? 500000000);
+    setDistrict(initialData?.district || 'Kaliwates');
+    setVillage(initialData?.village || 'Sempusari');
+    setAddress(initialData?.address || '');
+    setLandArea(initialData?.land_area ?? 120);
+    setBuildingArea(initialData?.building_area ?? 90);
+    setBedrooms(initialData?.bedrooms ?? 3);
+    setBathrooms(initialData?.bathrooms ?? 2);
+    setFloors(initialData?.floors ?? 1);
+    setParkingSpaces(initialData?.parking_spaces ?? 1);
+    setImage(initialData?.image || (isDemoMode ? PRESET_IMAGES[0].url : ''));
     setExistingImages(storedImages);
     setPendingImages([]);
     setPrimaryImageKey(storedImages[0] ? `existing:${storedImages[0]}` : null);
+    setDescription(initialData?.description || '');
     setCompressionSummary(null);
     setError(null);
-  }, [isOpen, initialData?.id]);
+    setUploadStatus(null);
+  }, [isOpen, initialData?.id, isDemoMode]);
 
   const galleryItems = [
     ...existingImages.map(url => ({ key: `existing:${url}`, url, file: null as File | null })),
@@ -378,7 +394,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
                   onChange={(e) => setDistrict(e.target.value)}
                   className="w-full px-3 py-2 border border-[#E8E5DD] rounded-xl focus:ring-1 focus:ring-[#B49453]"
                 >
-                  {JEMBER_DISTRICTS.map((d) => (
+                  {[...new Set([district, ...JEMBER_DISTRICTS])].map((d) => (
                     <option key={d} value={d}>
                       {d}
                     </option>
@@ -661,6 +677,14 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
               </button>
             )}
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSaving}
+            className="w-full sm:w-auto px-4 py-2 rounded-xl border border-[#E8E5DD] bg-white text-[#6B7280] hover:bg-[#E8E5DD] text-xs font-bold disabled:opacity-50"
+          >
+            Tutup
+          </button>
         </div>
       </div>
     </div>

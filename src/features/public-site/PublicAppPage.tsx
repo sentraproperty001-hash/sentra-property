@@ -58,6 +58,11 @@ const MobilePropertyCard: React.FC<{
           <span className="absolute left-2 top-2 rounded-md bg-white px-2 py-1 text-[10px] font-bold capitalize text-[#142544] shadow">
             {isRent ? 'Sewa' : 'Jual'}
           </span>
+          {property.status === 'sold' && (
+            <span className="absolute right-2 top-2 rounded-md bg-rose-700 px-2 py-1 text-[10px] font-extrabold uppercase text-white shadow">
+              Terjual
+            </span>
+          )}
           {isSample && (
             <span className="absolute bottom-2 left-2 rounded-md bg-[#B49453] px-2 py-1 text-[9px] font-bold text-[#142544]">
               CONTOH
@@ -67,7 +72,9 @@ const MobilePropertyCard: React.FC<{
       <div className="min-w-0 flex-1 p-3">
         <div className="flex items-start justify-between gap-2">
           <Link to={detailPath} className="min-w-0 flex-1">
-            <p className="truncate text-sm font-extrabold text-[#142544]">{formatRupiah(property.price, isRent)}</p>
+            <p className={`truncate text-sm font-extrabold ${property.status === 'sold' ? 'text-rose-700' : 'text-[#142544]'}`}>
+              {property.status === 'sold' ? 'Sudah Terjual' : formatRupiah(property.price, isRent)}
+            </p>
             <h2 className="mt-1 line-clamp-2 text-xs font-semibold leading-snug text-[#142544]" style={{ fontWeight: 700 }}>{property.title}</h2>
           </Link>
           <button

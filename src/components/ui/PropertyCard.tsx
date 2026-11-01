@@ -59,6 +59,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             {property.property_type}
           </span>
         </div>
+        {property.status === 'sold' && (
+          <span className="absolute right-3 top-3 rounded-md bg-rose-700 px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider text-white shadow">
+            Terjual
+          </span>
+        )}
 
         {/* City/District Pill */}
         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs font-medium">
@@ -74,10 +79,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         {/* Price */}
         <div className="mb-2">
           <span className="text-xs text-[#6B7280] font-medium uppercase tracking-wider block">
-            Harga Penawaran
+            {property.status === 'sold' ? 'Status Properti' : 'Harga Penawaran'}
           </span>
-          <span className="text-xl font-semibold text-[#142544] tracking-tight">
-            {formatRupiah(property.price, isRent)}
+          <span className={`text-xl font-semibold tracking-tight ${property.status === 'sold' ? 'text-rose-700' : 'text-[#142544]'}`}>
+            {property.status === 'sold' ? 'Sudah Terjual' : formatRupiah(property.price, isRent)}
           </span>
         </div>
 

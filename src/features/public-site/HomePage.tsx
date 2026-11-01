@@ -76,11 +76,12 @@ export const HomePage: React.FC = () => {
   const latestProperties = publishedProperties.slice(3, 6).length > 0
     ? publishedProperties.slice(3, 6)
     : publishedProperties.slice(0, 3);
-  const forSaleCount = publishedProperties.filter((property) => property.listing_type === 'jual').length;
-  const forRentCount = publishedProperties.filter((property) => property.listing_type === 'sewa').length;
-  const activeCategoryCount = new Set(publishedProperties.map((property) => property.property_type)).size;
+  const activeProperties = publishedProperties.filter((property) => property.status === 'published');
+  const forSaleCount = activeProperties.filter((property) => property.listing_type === 'jual').length;
+  const forRentCount = activeProperties.filter((property) => property.listing_type === 'sewa').length;
+  const activeCategoryCount = new Set(activeProperties.map((property) => property.property_type)).size;
   const publicStats: { value: number | string; label: string }[] = [
-    { value: publishedProperties.length, label: 'Listing Aktif' },
+    { value: activeProperties.length, label: 'Listing Aktif' },
     { value: forSaleCount, label: 'Properti Dijual' },
     { value: forRentCount, label: 'Properti Disewakan' },
     { value: activeCategoryCount, label: 'Kategori Tersedia' },
@@ -89,28 +90,28 @@ export const HomePage: React.FC = () => {
   const categories = [
     {
       title: 'Rumah Tinggal',
-      count: publishedProperties.filter((p) => p.property_type === 'rumah').length,
+      count: activeProperties.filter((p) => p.property_type === 'rumah').length,
       type: 'rumah',
       icon: Home,
       desc: 'Hunian cluster & residence keluarga',
     },
     {
       title: 'Ruko & Komersial',
-      count: publishedProperties.filter((p) => p.property_type === 'ruko').length,
+      count: activeProperties.filter((p) => p.property_type === 'ruko').length,
       type: 'ruko',
       icon: Building,
       desc: 'Lokasi usaha prima di pusat kota',
     },
     {
       title: 'Tanah Kavling',
-      count: publishedProperties.filter((p) => p.property_type === 'tanah').length,
+      count: activeProperties.filter((p) => p.property_type === 'tanah').length,
       type: 'tanah',
       icon: Compass,
       desc: 'Investasi tanah SHM siap bangun',
     },
     {
       title: 'Apartemen & Studio',
-      count: publishedProperties.filter((p) => p.property_type === 'apartemen').length,
+      count: activeProperties.filter((p) => p.property_type === 'apartemen').length,
       type: 'apartemen',
       icon: Tag,
       desc: 'Sewa bulanan & tahunan strategis',

@@ -41,7 +41,7 @@ const isListingType = (value: string): value is ListingType => (
   value === 'jual' || value === 'sewa'
 );
 const isPropertyStatus = (value: string): value is PropertyStatus => (
-  value === 'draft' || value === 'pending_review' || value === 'published'
+  value === 'draft' || value === 'pending_review' || value === 'published' || value === 'sold'
   || value === 'rejected' || value === 'archived'
 );
 
@@ -155,7 +155,7 @@ const saveData = (data: Property[]) => {
 };
 
 const findPublishedProperties = (): Property[] => {
-  return loadData().filter(property => property.status === 'published');
+  return loadData().filter(property => property.status === 'published' || property.status === 'sold');
 };
 
 const toNullableNumber = (value: number | string | null): number => {
@@ -176,7 +176,7 @@ const mapDatabaseProperty = (value: unknown, publicOnly = false): Property => {
   if (!isPropertyStatus(row.status)) {
     throw new Error('Status properti dari Supabase tidak didukung aplikasi.');
   }
-  if (publicOnly && row.status !== 'published') {
+  if (publicOnly && row.status !== 'published' && row.status !== 'sold') {
     throw new Error('Supabase mengembalikan properti dengan status yang bukan publik.');
   }
 
@@ -243,7 +243,7 @@ const readPublishedFromSupabase = async (): Promise<Property[]> => {
     const { data, error } = await supabase
       .from('properties')
       .select(PROPERTY_SELECT_COLUMNS)
-      .eq('status', 'published')
+      .in('status', ['published', 'sold'])
       .order('created_at', { ascending: false })
       .range(offset, offset + PROPERTY_PAGE_SIZE - 1);
 
@@ -601,7 +601,7 @@ export const propertyRepository = {
   },
 
   filterPublished: (properties: Property[], params: SearchFilterParams): Property[] => {
-    let data = properties.filter(property => property.status === 'published');
+    let data = properties.filter(property => property.status === 'published' || property.status === 'sold');
 
     if (params.query && params.query.trim() !== '') {
       const q = params.query.toLowerCase().trim();

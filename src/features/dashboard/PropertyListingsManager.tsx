@@ -197,9 +197,24 @@ export const PropertyListingsManager: React.FC = () => {
     }
   };
 
+  const handleSoldStatus = async (prop: Property) => {
+    const nextStatus: PropertyStatus = prop.status === 'sold' ? 'published' : 'sold';
+    const action = nextStatus === 'sold' ? 'menandai listing ini terjual' : 'mengaktifkan kembali listing ini';
+    if (!confirm(`Yakin ingin ${action}?`)) return;
+
+    try {
+      if (isDemoMode) propertyRepository.update(prop.id, { status: nextStatus }, currentUser);
+      else await propertyRepository.setStatusAsync(prop.id, nextStatus, currentUser);
+      await loadProperties();
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Status listing gagal diperbarui.');
+    }
+  };
+
   const statusTabs = [
     { id: 'all', label: 'Semua Status' },
     { id: 'published', label: 'Terbit (Publik)' },
+    { id: 'sold', label: 'Terjual' },
     { id: 'pending_review', label: 'Menunggu Review' },
     { id: 'draft', label: 'Draf' },
     { id: 'rejected', label: 'Perlu Revisi' },
@@ -331,10 +346,12 @@ export const PropertyListingsManager: React.FC = () => {
                             ? 'bg-rose-600 text-white'
                             : prop.status === 'archived'
                             ? 'bg-gray-600 text-white'
+                            : prop.status === 'sold'
+                            ? 'bg-rose-700 text-white'
                             : 'bg-gray-800 text-white'
                         }`}
                       >
-                        {prop.status.replace('_', ' ')}
+                        {prop.status === 'sold' ? 'Terjual' : prop.status.replace('_', ' ')}
                       </span>
                       <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-[#142544]/90 text-white shadow-xs">
                         {prop.listing_type}
@@ -399,7 +416,7 @@ export const PropertyListingsManager: React.FC = () => {
                     {/* Action Bar */}
                     <div className="pt-3 border-t border-[#E8E5DD] flex items-center justify-between gap-1.5 flex-wrap">
                       <div className="flex items-center gap-1">
-                        {prop.status === 'published' && (
+                        {(prop.status === 'published' || prop.status === 'sold') && (
                           <a
                             href={`/detail/${prop.slug}`}
                             target="_blank"
@@ -452,6 +469,24 @@ export const PropertyListingsManager: React.FC = () => {
                           >
                             <Archive className="w-3 h-3" />
                             <span>Arsip</span>
+                          </button>
+                        )}
+
+                        {prop.status === 'published' && prop.listing_type === 'jual' && canEdit && (
+                          <button
+                            onClick={() => void handleSoldStatus(prop)}
+                            className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] font-semibold"
+                          >
+                            Tandai Terjual
+                          </button>
+                        )}
+
+                        {prop.status === 'sold' && isAdmin && (
+                          <button
+                            onClick={() => void handleSoldStatus(prop)}
+                            className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-semibold"
+                          >
+                            Aktifkan Kembali
                           </button>
                         )}
                       </div>

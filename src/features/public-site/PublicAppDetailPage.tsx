@@ -157,6 +157,11 @@ export const PublicAppDetailPage: React.FC<{ basePath?: string }> = ({ basePath 
           <span className="absolute left-4 top-4 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#142544] shadow">
             {isRent ? 'Disewakan' : 'Dijual'} · {property.property_type}
           </span>
+          {property.status === 'sold' && (
+            <span className="absolute left-4 top-14 rounded-lg bg-rose-700 px-3 py-1.5 text-xs font-extrabold text-white shadow">
+              TERJUAL
+            </span>
+          )}
           {isSampleData && (
             <span className="absolute left-4 top-14 rounded-lg bg-[#B49453] px-3 py-1.5 text-xs font-bold text-[#142544] shadow">
               DATA CONTOH
@@ -201,7 +206,9 @@ export const PublicAppDetailPage: React.FC<{ basePath?: string }> = ({ basePath 
             </p>
           )}
           <div>
-            <p className="text-xl font-extrabold text-[#142544]">{formatRupiah(property.price, isRent)}</p>
+            <p className={`text-xl font-extrabold ${property.status === 'sold' ? 'text-rose-700' : 'text-[#142544]'}`}>
+              {property.status === 'sold' ? 'Sudah Terjual' : formatRupiah(property.price, isRent)}
+            </p>
             <h1 className="mt-1 text-lg font-bold leading-snug text-[#142544]" style={{ fontWeight: 700 }}>{property.title}</h1>
             <p className="mt-2 flex items-start gap-2 text-sm text-[#6B7280]">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#B49453]" />
@@ -236,14 +243,20 @@ export const PublicAppDetailPage: React.FC<{ basePath?: string }> = ({ basePath 
       </main>
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#E8E5DD] bg-white/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
-        <a
-          href={`${BUSINESS_CONFIG.whatsapp.link}?text=${whatsappText}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mx-auto flex max-w-3xl items-center justify-center rounded-xl bg-[#142544] px-4 py-3.5 text-sm font-bold text-white"
-        >
-          Tanya via WhatsApp
-        </a>
+        {property.status === 'sold' ? (
+          <Link to={appUrl('/katalog')} className="mx-auto flex max-w-3xl items-center justify-center rounded-xl bg-[#142544] px-4 py-3.5 text-sm font-bold text-white">
+            Lihat Properti Lain
+          </Link>
+        ) : (
+          <a
+            href={`${BUSINESS_CONFIG.whatsapp.link}?text=${whatsappText}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mx-auto flex max-w-3xl items-center justify-center rounded-xl bg-[#142544] px-4 py-3.5 text-sm font-bold text-white"
+          >
+            Tanya via WhatsApp
+          </a>
+        )}
       </div>
     </div>
   );

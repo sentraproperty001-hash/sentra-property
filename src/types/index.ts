@@ -1,6 +1,6 @@
 export type Role = 'super_admin' | 'admin' | 'internal_agent' | 'partner_agent';
 
-export type PropertyStatus = 'draft' | 'pending_review' | 'published' | 'rejected' | 'archived';
+export type PropertyStatus = 'draft' | 'pending_review' | 'published' | 'sold' | 'rejected' | 'archived';
 
 export type Property = {
   id: string;

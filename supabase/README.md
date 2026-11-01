@@ -24,7 +24,7 @@ Jalankan secara manual hanya setelah skema dan kebijakan RLS ditinjau serta pemi
 
 ## Catatan akses dan integrasi
 
-- Pengunjung anonim hanya diberi akses baca listing berstatus `published`, metadata gambar milik listing terbit, dan pengiriman lead untuk listing terbit.
+- Pengunjung anonim dapat membaca listing `published` dan `sold` beserta gambar; pengiriman lead hanya diizinkan untuk listing `published`.
 - Portal website memakai Supabase Auth. Login berhasil hanya jika user Auth memiliki baris `profiles` dengan `id` yang sama dan role yang dikenali.
 - Buat/invite user dari Supabase Dashboard, lalu provisioning profil dan role secara manual melalui alat administratif Supabase. Jangan membuat akun admin atau menetapkan role dari frontend publik; jangan pernah memasukkan `service_role` key ke aplikasi.
 - Contoh provisioning satu akun setelah membuat user melalui Supabase Dashboard (ganti nilai placeholder; jalankan sebagai pemilik proyek di SQL Editor, bukan dari aplikasi):
@@ -41,7 +41,8 @@ Jalankan secara manual hanya setelah skema dan kebijakan RLS ditinjau serta pemi
 - Supabase menyimpan setiap URL CDN Cloudinary sebagai baris galeri pada `property_images.storage_path`; foto pertama adalah foto utama, dan byte foto tidak diunggah atau disajikan melalui Supabase Storage. Form edit mempertahankan foto lama sampai pengguna menghapus foto tertentu. Listing yang belum terbit tetap tidak ditampilkan pada katalog publik. URL Cloudinary merupakan URL publik, jadi gambar yang URL-nya dibagikan dapat dibuka langsung.
 - Menu **Kelola User** hanya tersedia untuk `super_admin`. Akun baru memakai username (3–32 karakter) dan password minimal 12 karakter tanpa meminta email pengguna. Login username menggunakan Edge Function yang mencari alamat Auth secara privat, sehingga akun lama tetap dapat masuk dengan email atau username hasil migrasi. Fungsi admin melakukan pembuatan akun, perubahan role, dan reset password di server; Service Role Key tidak pernah dikirim ke browser.
 - [Cloudinary Free](https://cloudinary.com/pricing) saat ini menawarkan 25 monthly credits dan tidak memerlukan kartu kredit. Upload, penyimpanan, transformasi, dan delivery menggunakan batas paket Cloudinary; cek pemakaian pada dashboard Cloudinary karena kuota dan harga dapat berubah.
-- Dashboard listing, review, inbox leads, dan user memakai Supabase saat terkonfigurasi. Pengunjung dapat mengirim minat hanya untuk listing `published`; RLS membatasi penyimpanan lead ke listing terbit dan menetapkan lead ke agen pemiliknya. Ringkasan demo, catatan follow-up, dan log aktivitas lokal tetap hanya tersedia pada mode demo.
+- Dashboard listing, review, inbox leads, dan user memakai Supabase saat terkonfigurasi. Pengunjung dapat mengirim minat hanya untuk listing `published`; RLS membatasi penyimpanan lead ke listing aktif dan menetapkan lead ke agen pemiliknya. Ringkasan demo, catatan follow-up, dan log aktivitas lokal tetap hanya tersedia pada mode demo.
+- Untuk menandai listing jual yang sudah laku, gunakan **Tandai Terjual** pada Kelola Listing. Listing berstatus `sold` tetap terlihat di katalog dengan label **Terjual**, tetapi tidak menerima lead baru. Terapkan migration `20261101000000_listing_sold_status.sql` ke Supabase aktif sebelum menggunakan fitur ini; migration memperbarui constraint status dan akses baca publik listing/foto terjual.
 
 ## Menyiapkan upload foto Cloudinary
 

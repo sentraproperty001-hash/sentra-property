@@ -275,11 +275,15 @@ export const DetailPage: React.FC = () => {
 
                   <div className="sm:text-right">
                     <span className="text-xs text-[#6B7280] font-medium uppercase tracking-wider block">
-                      Harga Penawaran
+                      {property.status === 'sold' ? 'Status Properti' : 'Harga Penawaran'}
                     </span>
-                    <span className="text-2xl sm:text-3xl font-black text-[#142544] tracking-tight">
-                      {formatRupiah(property.price)}
-                      {isRent && <span className="text-sm font-normal text-[#6B7280]"> / tahun</span>}
+                    <span className={`text-2xl sm:text-3xl font-black tracking-tight ${property.status === 'sold' ? 'text-rose-700' : 'text-[#142544]'}`}>
+                      {property.status === 'sold' ? 'Sudah Terjual' : (
+                        <>
+                          {formatRupiah(property.price)}
+                          {isRent && <span className="text-sm font-normal text-[#6B7280]"> / tahun</span>}
+                        </>
+                      )}
                     </span>
                   </div>
                 </div>
@@ -362,6 +366,16 @@ export const DetailPage: React.FC = () => {
 
             {/* Right Sticky Contact Sidebar (4 Cols) */}
             <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+              {property.status === 'sold' ? (
+                <div role="status" className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center text-rose-800 shadow-sm">
+                  <h2 className="text-lg font-extrabold">Properti Ini Sudah Terjual</h2>
+                  <p className="mt-2 text-sm">Silakan lihat listing lain yang masih tersedia di katalog kami.</p>
+                  <Link to="/katalog" className="mt-4 inline-flex rounded-xl bg-[#142544] px-4 py-2.5 text-xs font-bold text-white">
+                    Lihat Properti Lain
+                  </Link>
+                </div>
+              ) : (
+                <>
               {/* Agent Card */}
               <div className="bg-white rounded-2xl border border-[#E8E5DD] p-6 shadow-sm text-[#142544]">
                 <span className="text-[10px] font-bold text-[#B49453] uppercase tracking-widest block mb-4">
@@ -490,6 +504,8 @@ export const DetailPage: React.FC = () => {
                   </form>
                 )}
               </div>
+                </>
+              )}
             </div>
           </div>
 
